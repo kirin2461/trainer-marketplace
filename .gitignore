@@ -1,0 +1,15 @@
+.env
+.env.local
+node_modules/
+vendor/
+__pycache__/
+*.pyc
+*.log
+tmp/
+cache/
+*.pem
+*.key
+uploads/
+dist/
+build/
+.DS_Store
