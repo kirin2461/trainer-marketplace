@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Вход — ClimbConnect{% endblock %}
+{% block content %}
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1>Вход</h1>
+            <p>Войдите в свой аккаунт</p>
+        </div>
+        <form id="loginForm" class="auth-form">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" placeholder="your@email.com" required>
+            </div>
+            <div class="form-group">
+                <label>Пароль</label>
+                <input type="password" name="password" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn-primary btn-full">
+                <span>Войти</span>
+            </button>
+        </form>
+        <div class="auth-footer">
+            <p>Нет аккаунта? <a href="/register">Зарегистрироваться</a></p>
+        </div>
+    </div>
+</div>
+<script>
+document.getElementById('loginForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const form = new FormData(e.target);
+    const res = await fetch('/api/auth/login', {method: 'POST', body: form});
+    const data = await res.json();
+    if (data.success) window.location.href = '/dashboard';
+    else alert('Неверные данные');
+};
+</script>
+{% endblock %}

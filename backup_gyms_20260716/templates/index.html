@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}ClimbConnect — тренеры и снаряжение для скалолазания{% endblock %}
+
+{% block content %}
+
+<!-- ==================== HERO SECTION ==================== -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <canvas id="hero-particles" class="hero-canvas"></canvas>
+
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="pulse-dot"></span>
+      <span>{{ trainers|length }}+ тренеров и {{ total_products }} лотов снаряжения</span>
+    </div>
+
+    <h1 class="hero-title">
+      Лазай больше —<br>
+      <span class="gradient-text">всё для скалолазания</span>
+    </h1>
+
+    <p class="hero-subtitle">
+      Тренеры по боулдерингу, трудности, скорости, траду и мультипитчу.
+      Плюс маркет проверенного снаряжения с безопасной сделкой.
+    </p>
+
+    <div class="hero-actions">
+      <a href="/trainers" class="btn btn-primary btn-lg btn-icon">
+        Найти тренера
+        <svg class="icon"><use href="#icon-arrow-right"/></svg>
+      </a>
+      <a href="/market" class="btn btn-secondary btn-lg">
+        Перейти в маркет
+      </a>
+    </div>
+  </div>
+
+  <!-- Scroll hint -->
+  <div class="scroll-hint">
+    <svg class="icon icon-lg"><use href="#icon-chevron-down"/></svg>
+  </div>
+</section>
+
+<!-- ==================== STATS SECTION ==================== -->
+<section class="section section-dark">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-item reveal">
+        <div class="stat-value" data-counter="{{ trainers|length }}">0</div>
+        <div class="stat-label">Тренеров</div>
+      </div>
+      <div class="stat-item reveal reveal-delay-1">
+        <div class="stat-value" data-counter="{{ total_clients or 12 }}">0</div>
+        <div class="stat-label">Скалолазов</div>
+      </div>
+      <div class="stat-item reveal reveal-delay-2">
+        <div class="stat-value" data-counter="{{ total_bookings or 48 }}">0</div>
+        <div class="stat-label">Тренировок</div>
+      </div>
+      <div class="stat-item reveal reveal-delay-3">
+        <div class="stat-value" data-counter="{{ total_products or 0 }}">0</div>
+        <div class="stat-label">Лотов в маркете</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== DISCIPLINES ==================== -->
+<section class="section">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-label">Дисциплины</span>
+      <h2 class="section-title">Все виды скалолазания</h2>
+      <p class="section-desc">От первого занятия с верхней страховкой до трада и ледопадов</p>
+    </div>
+
+    <div class="steps-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+      {% for key, d in DISCIPLINES.items() %}
+      <a href="/trainers?discipline={{ key }}" class="step-card reveal reveal-delay-{{ loop.index % 4 + 1 }}" style="text-decoration:none;">
+        <div class="step-number" style="width:44px;height:44px;">
+          <svg class="icon" style="color:#fff;"><use href="#{{ d.icon }}"/></svg>
+        </div>
+        <h3 class="step-title" style="font-size:1.05rem;">{{ d.name }}</h3>
+        <p class="step-desc">Найти тренера</p>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ==================== HOW IT WORKS ==================== -->
+<section class="section section-dark">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-label">Как это работает</span>
+      <h2 class="section-title">Начни лазать за 4 шага</h2>
+      <p class="section-desc">Простой процесс — от выбора тренера до первой трассы</p>
+    </div>
+
+    <div class="steps-grid">
+      <div class="step-card reveal reveal-delay-1">
+        <div class="step-connector"></div>
+        <div class="step-number">1</div>
+        <h3 class="step-title">Выбери тренера</h3>
+        <p class="step-desc">Фильтруй по дисциплине, городу, цене и формату — зал, скалы или онлайн</p>
+      </div>
+      <div class="step-card reveal reveal-delay-2">
+        <div class="step-connector"></div>
+        <div class="step-number">2</div>
+        <h3 class="step-title">Забронируй время</h3>
+        <p class="step-desc">Одиночная тренировка или пакет занятий со скидкой до 15%</p>
+      </div>
+      <div class="step-card reveal reveal-delay-3">
+        <div class="step-connector"></div>
+        <div class="step-number">3</div>
+        <h3 class="step-title">Собери снарягу</h3>
+        <p class="step-desc">Купи скальники, обвязку или крашпад в маркете с безопасной сделкой</p>
+      </div>
+      <div class="step-card reveal reveal-delay-4">
+        <div class="step-number">4</div>
+        <h3 class="step-title">Прогрессируй</h3>
+        <p class="step-desc">Расти по категориям, выходи на скалы и участвуй в стартах</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FEATURED TRAINERS ==================== -->
+<section class="section">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-label">Популярные тренеры</span>
+      <h2 class="section-title">Лучшие специалисты</h2>
+      <p class="section-desc">Проверенные тренеры по скалолазанию с высоким рейтингом</p>
+    </div>
+
+    <div class="trainer-grid">
+      {% for trainer in trainers[:6] %}
+      {% set pd = primary_discipline(trainer) %}
+      <div class="trainer-card-v2">
+        <div class="trainer-card-v2-img">
+          <img src="{{ url_for('static', path='/images/' + pd + '.jpg') }}" alt="{{ trainer.name }}" onerror="this.src='{{ url_for('static', path='/images/bouldering.jpg') }}'">
+          <div class="trainer-card-v2-overlay"></div>
+          {% if trainer.verification_level >= 2 %}
+          <div class="trainer-card-v2-badge">
+            <svg class="icon icon-sm"><use href="#icon-badge-check"/></svg>
+          </div>
+          {% endif %}
+        </div>
+        <div class="trainer-card-v2-body">
+          <h3>{{ trainer.name }}</h3>
+          <p class="trainer-card-v2-spec">
+            <svg class="icon icon-xs"><use href="#{{ DISCIPLINES[pd].icon }}"/></svg>
+            {{ discipline_name(pd) }}{% if trainer.experience_years %} • {{ trainer.experience_years }} лет{% endif %}
+          </p>
+          <div class="trainer-card-v2-rating">
+            {% for i in range(5) %}
+              {% if i < trainer.rating|int %}
+              <svg class="icon icon-xs star-filled"><use href="#icon-star"/></svg>
+              {% elif i < trainer.rating %}
+              <svg class="icon icon-xs star-half"><use href="#icon-star-half"/></svg>
+              {% else %}
+              <svg class="icon icon-xs star-empty"><use href="#icon-star"/></svg>
+              {% endif %}
+            {% endfor %}
+            <span>{{ trainer.rating }} ({{ trainer.total_reviews }})</span>
+          </div>
+          <p class="trainer-card-v2-price">{{ trainer.hourly_rate }} ₽/час</p>
+          <a href="/trainer/{{ trainer.id }}" class="btn btn-primary btn-sm btn-full">Подробнее</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div style="text-align:center;margin-top:40px;">
+      <a href="/trainers" class="btn btn-secondary btn-lg btn-icon">
+        Все тренеры
+        <svg class="icon"><use href="#icon-arrow-right"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== MARKET TEASER ==================== -->
+{% if latest_products %}
+<section class="section section-dark">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-label">Маркет снаряжения</span>
+      <h2 class="section-title">Свежие лоты</h2>
+      <p class="section-desc">Скальники, обвязки, оттяжки и крашпады от проверенных продавцов</p>
+    </div>
+
+    <div class="trainer-grid">
+      {% for p in latest_products[:6] %}
+      <a href="/market/{{ p.id }}" class="product-card" style="text-decoration:none;">
+        <div class="product-card-img">
+          {% if p.image %}
+          <img src="{{ url_for('static', path='/' + p.image) }}" alt="{{ p.title }}" onerror="this.parentNode.classList.add('no-img');this.remove();">
+          {% endif %}
+          <span class="product-condition product-condition-{{ p.condition }}">{{ condition_name(p.condition) }}</span>
+        </div>
+        <div class="product-card-body">
+          <h3>{{ p.title }}</h3>
+          <p class="product-card-meta">{{ category_name(p.category) }}{% if p.city %} • {{ p.city }}{% endif %}</p>
+          <p class="product-card-price">{{ "%.0f"|format(p.price) }} ₽</p>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+
+    <div style="text-align:center;margin-top:40px;">
+      <a href="/market" class="btn btn-secondary btn-lg btn-icon">
+        Весь маркет
+        <svg class="icon"><use href="#icon-arrow-right"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ==================== CTA SECTION ==================== -->
+<section class="section" style="background: linear-gradient(135deg, var(--accent-dark) 0%, var(--bg-primary) 100%);">
+  <div class="container" style="text-align: center;">
+    <div class="section-header reveal">
+      <h2 class="section-title">Готов к новой категории?</h2>
+      <p class="section-desc">
+        Присоединяйся к сообществу скалолазов: тренируйся с лучшими и продавай снаряжение
+      </p>
+      <div style="margin-top: var(--space-lg); display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+        <a href="/register" class="btn btn-primary btn-lg btn-icon">
+          Создать аккаунт
+          <svg class="icon"><use href="#icon-arrow-right"/></svg>
+        </a>
+        <a href="/market/new" class="btn btn-secondary btn-lg">
+          Разместить лот
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

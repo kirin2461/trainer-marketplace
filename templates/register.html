@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Регистрация — ClimbConnect{% endblock %}
+{% block content %}
+<div class="auth-page">
+    <div class="auth-container" style="max-width: 560px;">
+        <div class="auth-header">
+            <h1>Создать аккаунт</h1>
+            <p>Тренируйся с лучшими и продавай снаряжение</p>
+        </div>
+        <form id="regForm" class="auth-form">
+            <div class="form-group">
+                <label>Имя</label>
+                <input type="text" name="name" placeholder="Алексей Рубцов" required>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" placeholder="your@email.com" required>
+            </div>
+            <div class="form-group">
+                <label>Пароль</label>
+                <input type="password" name="password" placeholder="••••••••" required>
+            </div>
+            <div class="form-group">
+                <label>Телефон</label>
+                <input type="text" name="phone" placeholder="+7 (999) 000-00-00">
+            </div>
+            <div class="form-group">
+                <label>Тип аккаунта</label>
+                <select name="role" id="roleSelect" onchange="toggleFields()">
+                    <option value="client">Скалолаз (ищу тренера)</option>
+                    <option value="trainer">Тренер (предлагаю услуги)</option>
+                </select>
+            </div>
+            <div id="clientFields">
+                <div class="form-group">
+                    <label>Цель</label>
+                    <select name="fitness_goal">
+                        <option value="">Выберите цель</option>
+                        {% for key, g in GOALS.items() %}
+                        <option value="{{ key }}">{{ g }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Любимая дисциплина</label>
+                    <select name="preferred_sport">
+                        <option value="">Выберите</option>
+                        {% for key, d in DISCIPLINES.items() %}
+                        <option value="{{ key }}">{{ d.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div id="trainerFields" style="display:none">
+                <div class="form-group">
+                    <label>Дисциплины</label>
+                    <div class="chips-select">
+                        {% for key, d in DISCIPLINES.items() %}
+                        <label class="chip-check">
+                            <input type="checkbox" name="disciplines" value="{{ key }}">
+                            <svg class="icon icon-sm"><use href="#{{ d.icon }}"/></svg>
+                            {{ d.name }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Формат работы</label>
+                    <div class="chips-select">
+                        {% for key, f in FORMATS.items() %}
+                        <label class="chip-check">
+                            <input type="checkbox" name="work_formats" value="{{ key }}">
+                            {{ f }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>С кем работаете</label>
+                    <div class="chips-select">
+                        {% for key, l in LEVELS.items() %}
+                        <label class="chip-check">
+                            <input type="checkbox" name="student_levels" value="{{ key }}">
+                            {{ l }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-sm);">
+                    <div class="form-group">
+                        <label>Ставка (₽/час)</label>
+                        <input type="number" name="hourly_rate" placeholder="1500">
+                    </div>
+                    <div class="form-group">
+                        <label>Опыт (лет)</label>
+                        <input type="number" name="experience_years" placeholder="5">
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-sm);">
+                    <div class="form-group">
+                        <label>Город</label>
+                        <input type="text" name="location" placeholder="Москва">
+                    </div>
+                    <div class="form-group">
+                        <label>Личная категория</label>
+                        <input type="text" name="personal_grade" placeholder="7c+ / V9">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Домашний зал / скалодром</label>
+                    <input type="text" name="gym" placeholder="Скала Сити">
+                </div>
+                <div class="form-group">
+                    <label>О себе</label>
+                    <textarea name="bio" placeholder="Стиль работы, достижения, подход к ученикам..."></textarea>
+                </div>
+            </div>
+            <button type="submit" class="btn-primary btn-full">
+                <span>Создать аккаунт</span>
+            </button>
+        </form>
+        <div class="auth-footer">
+            <p>Уже есть аккаунт? <a href="/login">Войти</a></p>
+        </div>
+    </div>
+</div>
+<script>
+function toggleFields() {
+    const role = document.getElementById('roleSelect').value;
+    document.getElementById('clientFields').style.display = role === 'client' ? 'block' : 'none';
+    document.getElementById('trainerFields').style.display = role === 'trainer' ? 'block' : 'none';
+}
+document.querySelectorAll('.chip-check input').forEach(cb => {
+    cb.addEventListener('change', () => cb.closest('.chip-check').classList.toggle('checked', cb.checked));
+});
+document.getElementById('regForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const form = new FormData(e.target);
+    const res = await fetch('/api/auth/register', {method: 'POST', body: form});
+    const data = await res.json();
+    if (data.success) window.location.href = '/dashboard';
+    else alert(data.detail || 'Ошибка регистрации');
+};
+</script>
+{% endblock %}

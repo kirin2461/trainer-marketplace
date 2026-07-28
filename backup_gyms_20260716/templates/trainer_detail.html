@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}{{ trainer.name }} — тренер по скалолазанию | ClimbConnect{% endblock %}
+
+{% block content %}
+{% set pd = primary_discipline(trainer) %}
+
+<section class="section" style="padding-top: 32px;">
+  <div class="container">
+
+    <!-- Photo Banner -->
+    <div class="trainer-hero-photo">
+      <img src="{{ url_for('static', path='/images/' + pd + '.jpg') }}" alt="{{ trainer.name }}" onerror="this.src='{{ url_for('static', path='/images/bouldering.jpg') }}'">
+    </div>
+
+    <!-- Trainer Profile Card -->
+    <div class="trainer-profile-card">
+      <!-- Left: Avatar + Quick Info -->
+      <div class="profile-left">
+        <div class="profile-avatar-v2">{{ trainer.name[0] if trainer.name else '?' }}</div>
+        <div class="profile-quick-info">
+          <h1 class="profile-name">{{ trainer.name }}</h1>
+          <p class="profile-spec">
+            <svg class="icon icon-sm"><use href="#{{ DISCIPLINES[pd].icon }}"/></svg>
+            {{ discipline_name(pd) }}
+            {% if trainer.experience_years %} &bull; опыт {{ trainer.experience_years }} лет{% endif %}
+          </p>
+          <div class="profile-rating">
+            {% for i in range(5) %}
+              {% if i < trainer.rating|int %}
+                <svg class="icon icon-sm star-filled"><use href="#icon-star"/></svg>
+              {% else %}
+                <svg class="icon icon-sm star-empty"><use href="#icon-star"/></svg>
+              {% endif %}
+            {% endfor %}
+            <span>{{ trainer.rating }} ({{ trainer.total_reviews }} отзывов)</span>
+          </div>
+          {% if trainer.verification_level >= 2 %}
+          <div class="profile-verified">
+            <svg class="icon icon-sm"><use href="#icon-badge-check"/></svg>
+             &bull; Уровень {{ trainer.verification_level }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Right: Price + Actions -->
+      <div class="profile-right">
+        <div class="profile-price">{{ trainer.hourly_rate }} <span>руб./ч</span></div>
+        <p class="profile-commission">Комиссия платформы: {{ "%.0f"|format(trainer.sliding_commission_rate * 100) }}%</p>
+        <div class="profile-actions">
+          <a href="/book/{{ trainer.id }}" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;">
+            Забронировать
+            <svg class="icon"><use href="#icon-arrow-right"/></svg>
+          </a>
+          <a href="/chat/{{ trainer.id }}" class="btn btn-secondary btn-lg" style="width:100%;justify-content:center;margin-top:8px;">
+            <svg class="icon"><use href="#icon-message-circle"/></svg>
+            Написать
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Showcase chips -->
+    <div class="profile-section reveal">
+      <div class="chip-grid">
+        {% if trainer.disciplines %}
+        <div class="chip-block">
+          <h3>Дисциплины</h3>
+          <div class="chips">
+            {% for d in trainer.disciplines %}
+            <span class="chip"><svg class="icon icon-xs"><use href="#{{ DISCIPLINES[d].icon if d in DISCIPLINES else 'icon-sport-default' }}"/></svg> {{ discipline_name(d) }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        {% if trainer.work_formats %}
+        <div class="chip-block">
+          <h3>Формат работы</h3>
+          <div class="chips">
+            {% for f in trainer.work_formats %}
+            <span class="chip">{{ FORMATS.get(f, f) }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        {% if trainer.student_levels %}
+        <div class="chip-block">
+          <h3>С кем работает</h3>
+          <div class="chips">
+            {% for l in trainer.student_levels %}
+            <span class="chip">{{ LEVELS.get(l, l) }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="chip-grid" style="margin-top: var(--space-md);">
+        {% if trainer.location or trainer.gym %}
+        <div class="chip-block">
+          <h3>Локация</h3>
+          <p style="color: var(--text-secondary);">
+            <svg class="icon icon-sm"><use href="#icon-map-pin"/></svg>
+            {{ trainer.location or '—' }}{% if trainer.gym %} • {{ trainer.gym }}{% endif %}
+          </p>
+        </div>
+        {% endif %}
+        {% if trainer.personal_grade %}
+        <div class="chip-block">
+          <h3>Личная категория</h3>
+          <p style="color: var(--accent-light); font-weight:700; font-size: var(--text-lg);">{{ trainer.personal_grade }}</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Bio Section -->
+    {% if trainer.bio or trainer.certification %}
+    <div class="profile-section reveal">
+      <h2 class="section-title" style="font-size:1.5rem;">О тренере</h2>
+      {% if trainer.bio %}
+      <p style="color: var(--text-secondary); line-height: 1.7; max-width: 700px;">{{ trainer.bio }}</p>
+      {% endif %}
+      {% if trainer.certification %}
+      <p style="color: var(--text-muted); margin-top: 12px; font-size: var(--text-sm);">
+        <svg class="icon icon-sm"><use href="#icon-shield-check"/></svg>
+        Сертификаты: {{ trainer.certification }}
+      </p>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Achievements -->
+    {% if trainer.achievements_text %}
+    <div class="profile-section reveal">
+      <h2 class="section-title" style="font-size:1.5rem;">
+        <svg class="icon icon-sm" style="color:var(--accent-light);"><use href="#icon-trophy"/></svg>
+        Достижения
+      </h2>
+      <p style="color: var(--text-secondary); line-height: 1.7; max-width: 700px;">{{ trainer.achievements_text }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Trainer's gear listings -->
+    {% if listings %}
+    <div class="profile-section reveal">
+      <h2 class="section-title" style="font-size:1.5rem;">
+        <svg class="icon icon-sm" style="color:var(--accent-light);"><use href="#icon-shopping-bag"/></svg>
+        Снаряжение от {{ trainer.name.split(' ')[0] }}
+      </h2>
+      <div class="trainer-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
+        {% for p in listings %}
+        <a href="/market/{{ p.id }}" class="product-card" style="text-decoration:none;">
+          <div class="product-card-img">
+            {% if p.image %}
+            <img src="{{ url_for('static', path='/' + p.image) }}" alt="{{ p.title }}" onerror="this.parentNode.classList.add('no-img');this.remove();">
+            {% endif %}
+            <span class="product-condition product-condition-{{ p.condition }}">{{ condition_name(p.condition) }}</span>
+          </div>
+          <div class="product-card-body">
+            <h3>{{ p.title }}</h3>
+            <p class="product-card-price">{{ "%.0f"|format(p.price) }} ₽</p>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+      <a href="/seller/{{ trainer.id }}" style="display:inline-block;margin-top:var(--space-sm);color:var(--accent-light);font-weight:600;">Все лоты продавца →</a>
+    </div>
+    {% endif %}
+
+    <!-- Reviews Section -->
+    <div class="profile-section reveal">
+      <h2 class="section-title" style="font-size:1.5rem;">
+        Отзывы
+        {% if trainer.total_reviews > 0 %}<span style="color:var(--text-muted);font-size:var(--text-base);font-weight:400;">({{ trainer.total_reviews }})</span>{% endif %}
+      </h2>
+
+      {% if reviews %}
+        <div class="reviews-list">
+          {% for review in reviews %}
+          <div class="review-card">
+            <div class="review-header">
+              <div class="review-rating">
+                {% for i in range(5) %}
+                  {% if i < review.rating %}
+                    <svg class="icon icon-sm star-filled"><use href="#icon-star"/></svg>
+                  {% else %}
+                    <svg class="icon icon-sm star-empty"><use href="#icon-star"/></svg>
+                  {% endif %}
+                {% endfor %}
+              </div>
+              <span class="review-date">{{ review.created_at.strftime('%d.%m.%Y') if review.created_at else '' }}</span>
+            </div>
+            {% if review.comment %}
+            <p class="review-text">{{ review.comment }}</p>
+            {% endif %}
+            <div class="review-scores">
+              <span>Проф: {{ review.professionalism }}</span>
+              <span>Пункт: {{ review.punctuality }}</span>
+              <span>Результат: {{ review.effectiveness }}</span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <svg class="icon icon-lg"><use href="#icon-message-circle"/></svg>
+          <p>Пока нет отзывов</p>
+          <p style="color:var(--text-muted);font-size:var(--text-sm);">Будьте первым, кто оставит отзыв после тренировки</p>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

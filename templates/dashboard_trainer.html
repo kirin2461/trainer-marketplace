@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Кабинет тренера — ClimbConnect{% endblock %}
+{% block content %}
+<div class="dashboard">
+        <aside class="sidebar">
+            <div class="sidebar-card">
+                <h3>{{ user.name }}</h3>
+                <div style="margin-bottom: var(--space-md); display:flex;gap:6px;flex-wrap:wrap;">
+                    <span style="display: inline-flex; align-items: center; gap: 4px; background: linear-gradient(135deg, var(--accent), var(--accent-light)); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">
+                        <svg class="icon icon-sm"><use href="#icon-star"/></svg>
+                        {{ user.rating }}
+                    </span>
+                    {% if user.personal_grade %}
+                    <span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,.06); color: var(--text-primary); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">
+                        {{ user.personal_grade }}
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="metric-row"><span class="metric-label">Комиссия</span><span class="metric-value">{{ "%.0f"|format(user.sliding_commission_rate*100) }}%</span></div>
+                <div class="metric-row"><span class="metric-label">Заработано</span><span class="metric-value" style="color: var(--accent-light);">{{ "%.0f"|format(user.total_earnings) }} ₽</span></div>
+                <div class="metric-row"><span class="metric-label">Баланс</span><span class="metric-value">{{ "%.0f"|format(user.wallet_balance) }} ₽</span></div>
+                <div class="metric-row"><span class="metric-label">Trust Score</span><span class="metric-value">{{ user.trust_score }}/100</span></div>
+                <a href="/showcase" class="btn-primary" style="margin-top: var(--space-lg); display: block; text-align: center;">Редактировать витрину</a>
+                <a href="/trainer/{{ user.id }}" class="btn-secondary" style="margin-top: 8px; display: block; text-align: center;">Моя витрина</a>
+                <a href="/wallet" class="btn-ghost" style="margin-top: 8px; display: block; text-align: center;">Вывести средства</a>
+            </div>
+        </aside>
+        <div class="dashboard-main">
+            <div class="main-panel" style="margin-bottom: var(--space-xl);">
+                <h2>Мои бронирования</h2>
+                {% if bookings %}
+                <div class="transactions-list">
+                    {% for b, client in bookings %}
+                    <div class="metric-row">
+                        <div>
+                            <div style="font-weight: 600;">{{ client.name }} • {{ b.booking_type }}</div>
+                            <small style="color: var(--text-muted);">{{ b.amount }} ₽ (комиссия: {{ b.platform_fee }} ₽){% if b.gym_id and gyms_map.get(b.gym_id) %} • <svg class="icon icon-xs"><use href="#icon-map-pin"/></svg> {{ gyms_map[b.gym_id].name }}{% endif %}</small>
+                        </div>
+                        <span class="status-badge status-{{ b.status }}">{{ b.status }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="color: var(--text-muted); text-align: center; padding: var(--space-xl);">Пока нет бронирований.</p>
+                {% endif %}
+            </div>
+
+            <div class="main-panel" style="margin-bottom: var(--space-xl);">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-sm);">
+                    <h2 style="margin:0;">Мои лоты в маркете</h2>
+                    <a href="/market/new" class="btn btn-primary btn-sm btn-icon"><svg class="icon icon-sm"><use href="#icon-plus"/></svg> Лот</a>
+                </div>
+                {% if my_listings %}
+                <div class="transactions-list">
+                    {% for p in my_listings %}
+                    <div class="metric-row">
+                        <div>
+                            <div style="font-weight: 600;"><a href="/market/{{ p.id }}" style="color:inherit;">{{ p.title }}</a></div>
+                            <small style="color: var(--text-muted);">{{ "%.0f"|format(p.price) }} ₽ • {{ p.views or 0 }} просмотров</small>
+                        </div>
+                        <span class="status-badge status-{{ 'completed' if p.status == 'sold' else ('confirmed' if p.status == 'active' else 'pending') }}">{{ 'продан' if p.status == 'sold' else ('активен' if p.status == 'active' else 'архив') }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="color: var(--text-muted); text-align: center; padding: var(--space-lg);">Нет лотов. <a href="/market/new" style="color: var(--accent-light);">Продайте снаряжение</a>, которое больше не нужно.</p>
+                {% endif %}
+            </div>
+
+            <div class="main-panel">
+                <h2>Продажи (безопасные сделки)</h2>
+                {% if my_sales %}
+                <div class="transactions-list">
+                    {% for o, p in my_sales %}
+                    <div class="metric-row">
+                        <div>
+                            <div style="font-weight: 600;">{{ p.title }}</div>
+                            <small style="color: var(--text-muted);">{{ o.amount }} ₽ • заказ №{{ o.id }}</small>
+                        </div>
+                        <span class="status-badge status-{{ 'completed' if o.status == 'completed' else ('confirmed' if o.status == 'escrow' else 'pending') }}">{{ {'escrow': 'эскроу', 'completed': 'выплачено', 'refunded': 'возврат'}[o.status] }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="color: var(--text-muted); text-align: center; padding: var(--space-lg);">Продаж пока не было.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

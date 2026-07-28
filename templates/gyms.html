@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}Скалодромы на карте — ClimbConnect{% endblock %}
+{% block content %}
+<section class="section" style="padding-top: 32px;">
+  <div class="container">
+
+    <div class="section-header reveal" style="text-align:left;margin-bottom: var(--space-md);">
+      <span class="section-label">Каталог</span>
+      <h1 class="section-title" style="font-size:2rem;">Скалодромы на карте</h1>
+      <p class="section-desc">
+        {{ total_gyms }} залов в {{ gym_cities|length }} городах. Выберите зал для занятия
+        или найдите тренера, который там работает.
+      </p>
+    </div>
+
+    <!-- City filter chips -->
+    <div class="gyms-city-filter reveal">
+      <a href="/gyms" class="chip {% if not current_city %}chip-active{% endif %}">Все города</a>
+      {% for c in gym_cities %}
+      <a href="/gyms?city={{ c }}" class="chip {% if current_city == c %}chip-active{% endif %}">{{ c }}</a>
+      {% endfor %}
+    </div>
+
+    <!-- Yandex map -->
+    <div class="gyms-map-wrap reveal">
+      <div id="gymsMap" class="gyms-map"></div>
+      <noscript><p style="padding:16px;color:var(--text-muted);">Для отображения карты включите JavaScript.</p></noscript>
+    </div>
+
+    <!-- Gym cards -->
+    {% if gyms %}
+    <div class="gyms-grid">
+      {% for gym in gyms %}
+      {% set g = gyms_dicts[loop.index0] %}
+      <div class="gym-card reveal reveal-delay-{{ loop.index % 3 + 1 }}">
+        <div class="gym-card-head">
+          <div class="gym-icon">
+            <svg class="icon"><use href="#icon-mountain"/></svg>
+          </div>
+          <div>
+            <h3 class="gym-name">{{ gym.name }}</h3>
+            <p class="gym-city">
+              <svg class="icon icon-xs"><use href="#icon-map-pin"/></svg>
+              {{ gym.city }}{% if gym.metro %} • м. {{ gym.metro }}{% endif %}
+            </p>
+          </div>
+        </div>
+        <p class="gym-address">{{ gym.address }}</p>
+        <div class="chips" style="margin-bottom: var(--space-xs);">
+          {% for d in gym.disciplines or [] %}
+          <span class="chip">
+            <svg class="icon icon-xs"><use href="#{{ DISCIPLINES[d].icon if d in DISCIPLINES else 'icon-sport-default' }}"/></svg>
+            {{ discipline_name(d) }}
+          </span>
+          {% endfor %}
+        </div>
+        <div class="gym-meta">
+          {% if gym.wall_height %}<span>Высота: {{ gym.wall_height }}</span>{% endif %}
+          {% if gym.price_from %}<span>от {{ gym.price_from }} ₽</span>{% endif %}
+          <span class="gym-trainers-count">
+            <svg class="icon icon-xs"><use href="#icon-user"/></svg>
+            {{ g.trainers_count }} трен.
+          </span>
+        </div>
+        <div class="gym-actions">
+          <a href="/gyms/{{ gym.id }}" class="btn btn-primary btn-sm btn-full">Подробнее</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <svg class="icon icon-lg"><use href="#icon-map-pin"/></svg>
+      <p>В этом городе пока нет скалодромов в каталоге</p>
+      <p style="color:var(--text-muted);font-size:var(--text-sm);"><a href="/gyms" style="color:var(--accent-light);">Смотреть все города →</a></p>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+
+<script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU{% if YANDEX_MAPS_API_KEY %}&apikey={{ YANDEX_MAPS_API_KEY }}{% endif %}"></script>
+<script>
+(function() {
+  'use strict';
+  const GYMS = {{ gyms_dicts | tojson }};
+
+  function fallbackList() {
+    const el = document.getElementById('gymsMap');
+    if (el) {
+      el.innerHTML = '<div class="gyms-map-fallback">Карта временно недоступна — список залов ниже.</div>';
+    }
+  }
+
+  if (!window.ymaps) { fallbackList(); return; }
+
+  ymaps.ready(function() {
+    try {
+      const map = new ymaps.Map('gymsMap', {
+        center: [55.76, 37.64],
+        zoom: 5,
+        controls: ['zoomControl', 'fullscreenControl', 'typeSelector']
+      });
+
+      const collection = new ymaps.GeoObjectCollection();
+      GYMS.forEach(function(g) {
+        const balloon =
+          '<div class="gym-balloon">' +
+            '<div class="gym-balloon-name">' + g.name + '</div>' +
+            '<div class="gym-balloon-addr">' + g.city + ', ' + g.address + '</div>' +
+            (g.disc_names ? '<div class="gym-balloon-disc">' + g.disc_names + '</div>' : '') +
+            (g.wall_height ? '<div class="gym-balloon-disc">Высота стен: ' + g.wall_height + '</div>' : '') +
+            '<a class="gym-balloon-link" href="/gyms/' + g.id + '">Подробнее и тренеры →</a>' +
+          '</div>';
+        const pm = new ymaps.Placemark([g.lat, g.lng], {
+          balloonContent: balloon,
+          hintContent: g.name
+        }, {
+          preset: 'islands#circleDotIcon',
+          iconColor: '#40916c'
+        });
+        collection.add(pm);
+      });
+
+      map.geoObjects.add(collection);
+      if (collection.getLength() > 0) {
+        map.setBounds(collection.getBounds(), {checkZoomRange: true, zoomMargin: 40});
+      }
+      map.behaviors.disable('scrollZoom');
+      map.events.add('click', function() { map.balloon.close(); });
+    } catch (e) {
+      fallbackList();
+    }
+  });
+})();
+</script>
+{% endblock %}

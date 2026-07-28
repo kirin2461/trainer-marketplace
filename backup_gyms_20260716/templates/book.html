@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Бронирование — ClimbConnect{% endblock %}
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="booking-page">
+            <span class="section-tag">Бронирование</span>
+            <h1 style="margin-bottom: var(--space-lg);">Забронировать тренера</h1>
+
+            <div class="booking-trainer-info">
+                <div class="avatar">{{ trainer.name[0] }}</div>
+                <div>
+                    <h3 style="margin-bottom: 4px;">{{ trainer.name }}</h3>
+                    <p style="color: var(--text-muted); font-size: var(--text-sm);">{{ discipline_name(primary_discipline(trainer)) }} • {{ trainer.hourly_rate }}  руб./час{% if trainer.gym %} • {{ trainer.gym }}{% endif %}</p>
+                </div>
+            </div>
+
+            <div class="booking-form">
+                <form id="bookForm">
+                    <div class="form-group">
+                        <label>Тип бронирования</label>
+                        <select name="booking_type" id="bookType" onchange="calcPrice()">
+                            <option value="single" data-sessions="1" data-discount="1.0">Одиночная тренировка</option>
+                            <option value="package_5" data-sessions="5" data-discount="0.95">Пакет 5 занятий (-5%)</option>
+                            <option value="package_10" data-sessions="10" data-discount="0.90">Пакет 10 занятий (-10%)</option>
+                            <option value="package_20" data-sessions="20" data-discount="0.85">Пакет 20 занятий (-15%)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Дата и время</label>
+                        <input type="datetime-local" name="scheduled_at" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Примечания</label>
+                        <textarea name="notes" placeholder="Ваш уровень, цели (первая 6А, выход на скалы), пожелания..."></textarea>
+                    </div>
+                    <div class="price-display">
+                        <div class="total" id="totalPrice">{{ trainer.hourly_rate }}  руб.</div>
+                        <div class="cashback" id="cashback">Кэшбэк: {{ "%.0f"|format(trainer.hourly_rate*0.05) }}  руб.</div>
+                    </div>
+                    <button type="submit" class="btn-primary btn-full">Оплатить с кошелька</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+<script>
+const rate = {{ trainer.hourly_rate }};
+function calcPrice() {
+    const opt = document.getElementById('bookType').selectedOptions[0];
+    const sessions = parseInt(opt.dataset.sessions);
+    const discount = parseFloat(opt.dataset.discount);
+    const total = Math.round(rate * sessions * discount);
+    document.getElementById('totalPrice').textContent = total.toLocaleString() + '  руб.';
+    document.getElementById('cashback').textContent = 'Кэшбэк: ' + Math.round(total * 0.05).toLocaleString() + '  руб.';
+}
+document.getElementById('bookForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const form = new FormData(e.target);
+    form.append('trainer_id', '{{ trainer.id }}');
+    const res = await fetch('/api/bookings', {method: 'POST', body: form});
+    const data = await res.json();
+    if (data.success) {
+        alert('Бронирование создано! Кэшбэк ' + data.cashback + '  руб. начислен.');
+        window.location.href = '/dashboard';
+    } else {
+        alert(data.detail || 'Ошибка. Пополните кошелек.');
+    }
+};
+</script>
+{% endblock %}

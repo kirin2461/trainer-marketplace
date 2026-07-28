@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Маркет снаряжения — ClimbConnect{% endblock %}
+{% block content %}
+<section class="page-header">
+    <div class="container" style="display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:16px;">
+        <div>
+            <span class="section-tag">Маркет</span>
+            <h1>Снаряжение для скалолазания</h1>
+            <p>Безопасная сделка: деньги замораживаются до подтверждения получения</p>
+        </div>
+        {% if user %}
+        <a href="/market/new" class="btn btn-primary btn-icon">
+            <svg class="icon"><use href="#icon-plus"/></svg>
+            Разместить лот
+        </a>
+        {% else %}
+        <a href="/login" class="btn btn-primary btn-icon">
+            <svg class="icon"><use href="#icon-plus"/></svg>
+            Разместить лот
+        </a>
+        {% endif %}
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+
+        <!-- ==================== FILTER BAR ==================== -->
+        <form method="get" action="/market" class="filter-bar">
+            <div class="filter-row">
+                <div class="filter-field">
+                    <label>Категория</label>
+                    <select name="category">
+                        <option value="">Все категории</option>
+                        {% for key, c in GEAR_CATEGORIES.items() %}
+                        <option value="{{ key }}" {% if filters.category == key %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-field">
+                    <label>Состояние</label>
+                    <select name="condition">
+                        <option value="">Любое</option>
+                        {% for key, c in CONDITIONS.items() %}
+                        <option value="{{ key }}" {% if filters.condition == key %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-field">
+                    <label>Город</label>
+                    <input type="text" name="city" placeholder="Москва" value="{{ filters.city or '' }}">
+                </div>
+                <div class="filter-field">
+                    <label>Поиск</label>
+                    <input type="text" name="q" placeholder="La Sportiva, GriGri, крашпад..." value="{{ filters.q or '' }}">
+                </div>
+            </div>
+            <div class="filter-row">
+                <div class="filter-field">
+                    <label>Цена от, ₽</label>
+                    <input type="number" name="price_min" min="0" placeholder="0" value="{{ filters.price_min if filters.price_min is not none else '' }}">
+                </div>
+                <div class="filter-field">
+                    <label>Цена до, ₽</label>
+                    <input type="number" name="price_max" min="0" placeholder="20000" value="{{ filters.price_max if filters.price_max is not none else '' }}">
+                </div>
+                <div class="filter-field">
+                    <label>Сортировка</label>
+                    <select name="sort">
+                        <option value="new" {% if filters.sort == 'new' %}selected{% endif %}>Сначала новые</option>
+                        <option value="price_asc" {% if filters.sort == 'price_asc' %}selected{% endif %}>Сначала дешевле</option>
+                        <option value="price_desc" {% if filters.sort == 'price_desc' %}selected{% endif %}>Сначала дороже</option>
+                        <option value="popular" {% if filters.sort == 'popular' %}selected{% endif %}>По просмотрам</option>
+                    </select>
+                </div>
+                <div class="filter-actions">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <svg class="icon icon-sm"><use href="#icon-filter"/></svg>
+                        Применить
+                    </button>
+                    <a href="/market" class="btn btn-ghost btn-sm">Сбросить</a>
+                </div>
+            </div>
+        </form>
+
+        <!-- Quick category tags -->
+        <div class="filters" style="margin-top: var(--space-sm);">
+            <a href="/market" class="filter-tag {% if not filters.category %}active{% endif %}">Все</a>
+            {% for key, c in GEAR_CATEGORIES.items() %}
+            <a href="/market?category={{ key }}" class="filter-tag {% if filters.category == key %}active{% endif %}">{{ c }}</a>
+            {% endfor %}
+        </div>
+
+        <p style="color: var(--text-muted); font-size: var(--text-sm); margin-bottom: var(--space-md);">
+            Лотов найдено: {{ products|length }}
+        </p>
+
+        <!-- ==================== PRODUCT GRID ==================== -->
+        <div class="trainer-grid">
+            {% for p in products %}
+            {% set s = sellers.get(p.seller_id) %}
+            <a href="/market/{{ p.id }}" class="product-card" style="text-decoration:none;">
+                <div class="product-card-img {% if not p.image %}no-img{% endif %}">
+                    {% if p.image %}
+                    <img src="{{ url_for('static', path='/' + p.image) }}" alt="{{ p.title }}" onerror="this.parentNode.classList.add('no-img');this.remove();">
+                    {% endif %}
+                    <span class="product-condition product-condition-{{ p.condition }}">{{ condition_name(p.condition) }}</span>
+                </div>
+                <div class="product-card-body">
+                    <h3>{{ p.title }}</h3>
+                    <p class="product-card-meta">{{ category_name(p.category) }}{% if p.brand %} • {{ p.brand }}{% endif %}</p>
+                    <div class="product-card-footer">
+                        <p class="product-card-price">{{ "%.0f"|format(p.price) }} ₽</p>
+                        <p class="product-card-seller">
+                            {% if s %}
+                            <svg class="icon icon-xs star-filled"><use href="#icon-star"/></svg>
+                            {{ s.seller_rating or '—' }}
+                            {% if s.city or p.city %} · {{ p.city or s.city }}{% endif %}
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </a>
+            {% else %}
+            <div class="empty-state" style="grid-column: 1/-1;">
+                <svg class="icon icon-lg"><use href="#icon-shopping-bag"/></svg>
+                <p>По этим фильтрам лотов нет</p>
+                <p style="color:var(--text-muted);font-size:var(--text-sm);">Попробуйте другую категорию или сбросьте фильтры</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

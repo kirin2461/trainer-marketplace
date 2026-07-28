@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}{{ gym.name }} — скалодром | ClimbConnect{% endblock %}
+{% block content %}
+<section class="section" style="padding-top: 32px;">
+  <div class="container">
+
+    <a href="/gyms" class="gym-back">
+      <svg class="icon icon-sm"><use href="#icon-chevron-right" style="transform:rotate(180deg)"/></svg>
+      Все скалодромы
+    </a>
+
+    <div class="gym-detail-layout">
+      <!-- Left: info -->
+      <div class="gym-detail-info">
+        <span class="section-tag">Скалодром</span>
+        <h1 style="margin: 8px 0 4px;">{{ gym.name }}</h1>
+        <p style="color: var(--text-secondary);">
+          <svg class="icon icon-sm"><use href="#icon-map-pin"/></svg>
+          {{ gym.city }}, {{ gym.address }}
+          {% if gym.metro %}<span style="color:var(--text-muted);"> • м. {{ gym.metro }}</span>{% endif %}
+        </p>
+
+        <div class="chips" style="margin: var(--space-sm) 0;">
+          {% for d in gym.disciplines or [] %}
+          <span class="chip">
+            <svg class="icon icon-xs"><use href="#{{ DISCIPLINES[d].icon if d in DISCIPLINES else 'icon-sport-default' }}"/></svg>
+            {{ discipline_name(d) }}
+          </span>
+          {% endfor %}
+        </div>
+
+        <div class="gym-facts">
+          {% if gym.wall_height %}
+          <div class="gym-fact">
+            <div class="gym-fact-value">{{ gym.wall_height }}</div>
+            <div class="gym-fact-label">Высота стен</div>
+          </div>
+          {% endif %}
+          {% if gym.price_from %}
+          <div class="gym-fact">
+            <div class="gym-fact-value">от {{ gym.price_from }} ₽</div>
+            <div class="gym-fact-label">Разовое посещение</div>
+          </div>
+          {% endif %}
+          <div class="gym-fact">
+            <div class="gym-fact-value">{{ gym_trainers|length }}</div>
+            <div class="gym-fact-label">Тренеров ClimbConnect</div>
+          </div>
+        </div>
+
+        {% if gym.description %}
+        <p style="color: var(--text-secondary); line-height: 1.7; margin-top: var(--space-sm);">{{ gym.description }}</p>
+        {% endif %}
+
+        {% if gym.website %}
+        <a href="{{ gym.website }}" target="_blank" rel="noopener" class="btn btn-secondary" style="margin-top: var(--space-sm);">
+          Сайт скалодрома
+          <svg class="icon icon-sm"><use href="#icon-arrow-right"/></svg>
+        </a>
+        {% endif %}
+      </div>
+
+      <!-- Right: map -->
+      <div class="gym-detail-map">
+        <div id="gymMap" class="gyms-map gyms-map-small"></div>
+      </div>
+    </div>
+
+    <!-- Trainers attached to this gym -->
+    <div class="profile-section reveal" style="margin-top: var(--space-lg);">
+      <h2 class="section-title" style="font-size:1.5rem;">
+        Тренеры в этом зале
+        <span style="color:var(--text-muted);font-size:var(--text-base);font-weight:400;">({{ gym_trainers|length }})</span>
+      </h2>
+
+      {% if gym_trainers %}
+      <div class="trainer-grid">
+        {% for trainer in gym_trainers %}
+        {% set pd = primary_discipline(trainer) %}
+        <div class="trainer-card-v2">
+          <div class="trainer-card-v2-img">
+            <img src="{{ url_for('static', path='/images/' + pd + '.jpg') }}" alt="{{ trainer.name }}" onerror="this.src='{{ url_for('static', path='/images/bouldering.jpg') }}'">
+            <div class="trainer-card-v2-overlay"></div>
+            {% if trainer.verification_level >= 2 %}
+            <div class="trainer-card-v2-badge">
+              <svg class="icon icon-sm"><use href="#icon-badge-check"/></svg>
+            </div>
+            {% endif %}
+          </div>
+          <div class="trainer-card-v2-body">
+            <h3>{{ trainer.name }}</h3>
+            <p class="trainer-card-v2-spec">
+              <svg class="icon icon-xs"><use href="#{{ DISCIPLINES[pd].icon }}"/></svg>
+              {{ discipline_name(pd) }}{% if trainer.experience_years %} • {{ trainer.experience_years }} лет{% endif %}
+            </p>
+            <div class="trainer-card-v2-rating">
+              {% for i in range(5) %}
+                {% if i < trainer.rating|int %}
+                <svg class="icon icon-xs star-filled"><use href="#icon-star"/></svg>
+                {% elif i < trainer.rating %}
+                <svg class="icon icon-xs star-half"><use href="#icon-star-half"/></svg>
+                {% else %}
+                <svg class="icon icon-xs star-empty"><use href="#icon-star"/></svg>
+                {% endif %}
+              {% endfor %}
+              <span>{{ trainer.rating }} ({{ trainer.total_reviews }})</span>
+            </div>
+            <p class="trainer-card-v2-price">{{ trainer.hourly_rate }} ₽/час</p>
+            <a href="/trainer/{{ trainer.id }}" class="btn btn-primary btn-sm btn-full">Подробнее</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <svg class="icon icon-lg"><use href="#icon-user"/></svg>
+        <p>Пока ни один тренер не привязан к этому залу</p>
+        <p style="color:var(--text-muted);font-size:var(--text-sm);">
+          <a href="/trainers?city={{ gym.city }}" style="color:var(--accent-light);">Найти тренера в городе {{ gym.city }} →</a>
+        </p>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+</section>
+
+<script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU{% if YANDEX_MAPS_API_KEY %}&apikey={{ YANDEX_MAPS_API_KEY }}{% endif %}"></script>
+<script>
+(function() {
+  'use strict';
+  function fallback() {
+    const el = document.getElementById('gymMap');
+    if (el) el.innerHTML = '<div class="gyms-map-fallback">{{ gym.city }}, {{ gym.address }}</div>';
+  }
+  if (!window.ymaps) { fallback(); return; }
+  ymaps.ready(function() {
+    try {
+      const coords = [{{ gym.lat }}, {{ gym.lng }}];
+      const map = new ymaps.Map('gymMap', {
+        center: coords, zoom: 15,
+        controls: ['zoomControl', 'fullscreenControl']
+      });
+      map.geoObjects.add(new ymaps.Placemark(coords, {
+        balloonContent: '<b>{{ gym.name }}</b><br>{{ gym.address }}',
+        hintContent: '{{ gym.name }}'
+      }, {preset: 'islands#circleDotIcon', iconColor: '#40916c'}));
+      map.behaviors.disable('scrollZoom');
+    } catch (e) { fallback(); }
+  });
+})();
+</script>
+{% endblock %}

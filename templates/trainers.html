@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}Тренеры по скалолазанию — ClimbConnect{% endblock %}
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <span class="section-tag">Каталог</span>
+        <h1>Тренеры по скалолазанию</h1>
+        <p>Боулдеринг, трудность, скорость, трад, мультипитч, лёд и дети</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+
+        <!-- ==================== FILTER BAR ==================== -->
+        <form method="get" action="/trainers" class="filter-bar">
+            <div class="filter-row">
+                <div class="filter-field">
+                    <label>Дисциплина</label>
+                    <select name="discipline">
+                        <option value="">Все дисциплины</option>
+                        {% for key, d in DISCIPLINES.items() %}
+                        <option value="{{ key }}" {% if filters.discipline == key %}selected{% endif %}>{{ d.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-field">
+                    <label>Формат</label>
+                    <select name="format">
+                        <option value="">Любой</option>
+                        {% for key, f in FORMATS.items() %}
+                        <option value="{{ key }}" {% if filters.format == key %}selected{% endif %}>{{ f }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-field">
+                    <label>Уровень учеников</label>
+                    <select name="level">
+                        <option value="">Любой</option>
+                        {% for key, l in LEVELS.items() %}
+                        <option value="{{ key }}" {% if filters.level == key %}selected{% endif %}>{{ l }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-field">
+                    <label>Город</label>
+                    <input type="text" name="city" placeholder="Москва" value="{{ filters.city or '' }}">
+                </div>
+                <div class="filter-field">
+                    <label>Поиск</label>
+                    <input type="text" name="q" placeholder="Имя или описание" value="{{ filters.q or '' }}">
+                </div>
+            </div>
+            <div class="filter-row">
+                <div class="filter-field">
+                    <label>Цена от, ₽</label>
+                    <input type="number" name="price_min" min="0" placeholder="0" value="{{ filters.price_min if filters.price_min is not none else '' }}">
+                </div>
+                <div class="filter-field">
+                    <label>Цена до, ₽</label>
+                    <input type="number" name="price_max" min="0" placeholder="3000" value="{{ filters.price_max if filters.price_max is not none else '' }}">
+                </div>
+                <div class="filter-field">
+                    <label>Опыт от, лет</label>
+                    <input type="number" name="exp_min" min="0" placeholder="0" value="{{ filters.exp_min if filters.exp_min is not none else '' }}">
+                </div>
+                <div class="filter-field">
+                    <label>Рейтинг от</label>
+                    <select name="rating_min">
+                        <option value="">Любой</option>
+                        <option value="4.5" {% if filters.rating_min == 4.5 %}selected{% endif %}>4.5+</option>
+                        <option value="4.0" {% if filters.rating_min == 4.0 %}selected{% endif %}>4.0+</option>
+                        <option value="3.0" {% if filters.rating_min == 3.0 %}selected{% endif %}>3.0+</option>
+                    </select>
+                </div>
+                <div class="filter-field">
+                    <label>Сортировка</label>
+                    <select name="sort">
+                        <option value="rating" {% if filters.sort == 'rating' %}selected{% endif %}>По рейтингу</option>
+                        <option value="price_asc" {% if filters.sort == 'price_asc' %}selected{% endif %}>Сначала дешевле</option>
+                        <option value="price_desc" {% if filters.sort == 'price_desc' %}selected{% endif %}>Сначала дороже</option>
+                        <option value="experience" {% if filters.sort == 'experience' %}selected{% endif %}>По опыту</option>
+                    </select>
+                </div>
+                <div class="filter-actions">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <svg class="icon icon-sm"><use href="#icon-filter"/></svg>
+                        Применить
+                    </button>
+                    <a href="/trainers" class="btn btn-ghost btn-sm">Сбросить</a>
+                </div>
+            </div>
+        </form>
+
+        <!-- Quick discipline tags -->
+        <div class="filters" style="margin-top: var(--space-sm);">
+            <a href="/trainers" class="filter-tag {% if not filters.discipline %}active{% endif %}">Все</a>
+            {% for key, d in DISCIPLINES.items() %}
+            <a href="/trainers?discipline={{ key }}" class="filter-tag {% if filters.discipline == key %}active{% endif %}">{{ d.name }}</a>
+            {% endfor %}
+        </div>
+
+        <p style="color: var(--text-muted); font-size: var(--text-sm); margin-bottom: var(--space-md);">
+            Найдено: {{ trainers|length }}
+        </p>
+
+        <!-- ==================== TRAINER GRID ==================== -->
+        <div class="trainer-grid">
+            {% for t in trainers %}
+            {% set pd = primary_discipline(t) %}
+            <div class="trainer-card-v2">
+                <div class="trainer-card-v2-img">
+                    <img src="{{ url_for('static', path='/images/' + pd + '.jpg') }}" alt="{{ t.name }}" onerror="this.src='{{ url_for('static', path='/images/bouldering.jpg') }}'">
+                    <div class="trainer-card-v2-overlay"></div>
+                    {% if t.verification_level >= 2 %}
+                    <div class="trainer-card-v2-badge">
+                        <svg class="icon icon-sm"><use href="#icon-badge-check"/></svg>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="trainer-card-v2-body">
+                    <h3>{{ t.name }}</h3>
+                    <p class="trainer-card-v2-spec">
+                        <svg class="icon icon-xs"><use href="#{{ DISCIPLINES[pd].icon }}"/></svg>
+                        {{ discipline_name(pd) }}{% if t.experience_years %} • {{ t.experience_years }} лет{% endif %}
+                    </p>
+                    {% if t.disciplines and t.disciplines|length > 1 %}
+                    <p style="color:var(--text-muted);font-size:var(--text-xs);margin:2px 0 4px;">
+                        {% for d in t.disciplines %}{{ discipline_name(d) }}{% if not loop.last %} · {% endif %}{% endfor %}
+                    </p>
+                    {% endif %}
+                    {% if t.location %}
+                    <p style="color:var(--text-muted);font-size:var(--text-xs);margin-bottom:4px;">
+                        <svg class="icon icon-xs"><use href="#icon-map-pin"/></svg> {{ t.location }}
+                        {% if t.gym %} • {{ t.gym }}{% endif %}
+                    </p>
+                    {% endif %}
+                    <div class="trainer-card-v2-rating">
+                        {% for i in range(5) %}
+                            {% if i < t.rating|int %}
+                            <svg class="icon icon-xs star-filled"><use href="#icon-star"/></svg>
+                            {% elif i < t.rating %}
+                            <svg class="icon icon-xs star-half"><use href="#icon-star-half"/></svg>
+                            {% else %}
+                            <svg class="icon icon-xs star-empty"><use href="#icon-star"/></svg>
+                            {% endif %}
+                        {% endfor %}
+                        <span>{{ t.rating }} ({{ t.total_reviews }})</span>
+                    </div>
+                    <p class="trainer-card-v2-price">{{ t.hourly_rate }} ₽/час</p>
+                    <a href="/trainer/{{ t.id }}" class="btn btn-primary btn-sm btn-full">Подробнее</a>
+                </div>
+            </div>
+            {% else %}
+            <div class="empty-state" style="grid-column: 1/-1;">
+                <svg class="icon icon-lg"><use href="#icon-search"/></svg>
+                <p>Никого не нашли по этим фильтрам</p>
+                <p style="color:var(--text-muted);font-size:var(--text-sm);">Попробуйте смягчить условия поиска</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

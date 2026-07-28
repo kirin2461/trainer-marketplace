@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Разместить лот — Маркет | ClimbConnect{% endblock %}
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="booking-page">
+            <span class="section-tag">Маркет</span>
+            <h1 style="margin-bottom: var(--space-sm);">Разместить лот</h1>
+            <p style="color:var(--text-muted);margin-bottom: var(--space-lg);">
+                Продайте снаряжение сообществу скалолазов. Сделки защищены эскроу: деньги придут после подтверждения получения покупателем. Комиссия — 7%.
+            </p>
+
+            <div class="booking-form">
+                <form id="lotForm" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label>Название лота *</label>
+                        <input type="text" name="title" placeholder="Скальные туфли La Sportiva Solution, 42" required minlength="3" maxlength="150">
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-sm);">
+                        <div class="form-group">
+                            <label>Категория *</label>
+                            <select name="category" required>
+                                {% for key, c in GEAR_CATEGORIES.items() %}
+                                <option value="{{ key }}">{{ c }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Состояние *</label>
+                            <select name="condition" required>
+                                {% for key, c in CONDITIONS.items() %}
+                                <option value="{{ key }}" {% if key == 'good' %}selected{% endif %}>{{ c }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-sm);">
+                        <div class="form-group">
+                            <label>Бренд</label>
+                            <input type="text" name="brand" placeholder="Petzl, Black Diamond, Scarpa...">
+                        </div>
+                        <div class="form-group">
+                            <label>Размер</label>
+                            <input type="text" name="size" placeholder="EU 42 / M / 60 м">
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-sm);">
+                        <div class="form-group">
+                            <label>Цена, ₽ *</label>
+                            <input type="number" name="price" min="1" step="1" placeholder="6500" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Город</label>
+                            <input type="text" name="city" placeholder="Москва" value="{{ user.location or '' }}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Описание</label>
+                        <textarea name="description" placeholder="Состояние, срок использования, нюансы, причина продажи..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Фото (jpg/png/webp, до 8 МБ)</label>
+                        <input type="file" name="image" accept=".jpg,.jpeg,.png,.webp">
+                    </div>
+                    <button type="submit" class="btn-primary btn-full">
+                        <span>Опубликовать лот</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+<script>
+document.getElementById('lotForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const form = new FormData(e.target);
+    if (!form.get('image') || !form.get('image').name) form.delete('image');
+    const res = await fetch('/api/market/products', {method: 'POST', body: form});
+    const data = await res.json();
+    if (data.success) {
+        window.location.href = '/market/' + data.product_id;
+    } else {
+        alert(data.detail || 'Ошибка публикации лота');
+    }
+};
+</script>
+{% endblock %}

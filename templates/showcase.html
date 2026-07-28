@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Моя витрина — ClimbConnect{% endblock %}
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="booking-page" style="max-width: 760px;">
+            <span class="section-tag">Витрина тренера</span>
+            <h1 style="margin-bottom: var(--space-sm);">Моя анкета</h1>
+            <p style="color:var(--text-muted);margin-bottom: var(--space-lg);">
+                Так вас увидят клиенты в каталоге. Заполните дисциплины, форматы и достижения — это повышает отклик.
+                <a href="/trainer/{{ user.id }}" style="color:var(--accent-light);">Посмотреть витрину глазами клиента →</a>
+            </p>
+
+            <div class="booking-form">
+                <form id="showcaseForm">
+                    <div class="form-group">
+                        <label>Имя</label>
+                        <input type="text" name="name" value="{{ user.name }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>О себе</label>
+                        <textarea name="bio" placeholder="Стиль работы, подход, чего ждать от занятий...">{{ user.bio or '' }}</textarea>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-sm);">
+                        <div class="form-group">
+                            <label>Город</label>
+                            <input type="text" name="location" value="{{ user.location or '' }}" placeholder="Москва">
+                        </div>
+                        <div class="form-group">
+                            <label>Домашний зал / скалодром</label>
+                            <input type="text" name="gym" value="{{ user.gym or '' }}" placeholder="Скала Сити">
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--space-sm);">
+                        <div class="form-group">
+                            <label>Ставка, ₽/час</label>
+                            <input type="number" name="hourly_rate" min="0" value="{{ user.hourly_rate or 0 }}">
+                        </div>
+                        <div class="form-group">
+                            <label>Опыт, лет</label>
+                            <input type="number" name="experience_years" min="0" value="{{ user.experience_years or 0 }}">
+                        </div>
+                        <div class="form-group">
+                            <label>Личная категория</label>
+                            <input type="text" name="personal_grade" value="{{ user.personal_grade or '' }}" placeholder="7c+ / V9">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Дисциплины (основная — первая отмеченная)</label>
+                        <div class="chips-select">
+                            {% for key, d in DISCIPLINES.items() %}
+                            <label class="chip-check {% if key in (user.disciplines or []) %}checked{% endif %}">
+                                <input type="checkbox" name="disciplines" value="{{ key }}" {% if key in (user.disciplines or []) %}checked{% endif %}>
+                                <svg class="icon icon-sm"><use href="#{{ d.icon }}"/></svg>
+                                {{ d.name }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Формат работы</label>
+                        <div class="chips-select">
+                            {% for key, f in FORMATS.items() %}
+                            <label class="chip-check {% if key in (user.work_formats or []) %}checked{% endif %}">
+                                <input type="checkbox" name="work_formats" value="{{ key }}" {% if key in (user.work_formats or []) %}checked{% endif %}>
+                                {{ f }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>С кем работаете</label>
+                        <div class="chips-select">
+                            {% for key, l in LEVELS.items() %}
+                            <label class="chip-check {% if key in (user.student_levels or []) %}checked{% endif %}">
+                                <input type="checkbox" name="student_levels" value="{{ key }}" {% if key in (user.student_levels or []) %}checked{% endif %}>
+                                {{ l }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Мои скалодромы <span style="color:var(--text-muted);font-weight:400;">— где вы проводите занятия</span></label>
+                        <div class="chips-select">
+                            {% for g in all_gyms %}
+                            <label class="chip-check {% if g.id in trainer_gym_ids %}checked{% endif %}">
+                                <input type="checkbox" name="gym_ids" value="{{ g.id }}" {% if g.id in trainer_gym_ids %}checked{% endif %}>
+                                <svg class="icon icon-sm"><use href="#icon-map-pin"/></svg>
+                                {{ g.city }} • {{ g.name }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                        <small style="color:var(--text-muted);display:block;margin-top:6px;">
+                            Клиенты увидят эти залы в вашей витрине и смогут выбрать их при бронировании.
+                            <a href="/gyms" target="_blank" style="color:var(--accent-light);">Карта скалодромов →</a>
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Сертификаты</label>
+                        <input type="text" name="certification" value="{{ user.certification or '' }}" placeholder="КМС, инструктор ФАР, судья...">
+                    </div>
+                    <div class="form-group">
+                        <label>Достижения</label>
+                        <textarea name="achievements_text" placeholder="Соревнования, первопроходы, результаты учеников...">{{ user.achievements_text or '' }}</textarea>
+                    </div>
+
+                    <button type="submit" class="btn-primary btn-full">
+                        <span>Сохранить витрину</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+<script>
+document.querySelectorAll('.chip-check input').forEach(cb => {
+    cb.addEventListener('change', () => cb.closest('.chip-check').classList.toggle('checked', cb.checked));
+});
+document.getElementById('showcaseForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const form = new FormData(e.target);
+    const res = await fetch('/api/showcase', {method: 'POST', body: form});
+    const data = await res.json();
+    if (data.success) {
+        alert('Витрина сохранена!');
+        window.location.href = '/trainer/{{ user.id }}';
+    } else {
+        alert(data.detail || 'Ошибка сохранения');
+    }
+};
+</script>
+{% endblock %}

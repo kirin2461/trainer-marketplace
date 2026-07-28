@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% block title %}Личный кабинет — ClimbConnect{% endblock %}
+{% block content %}
+<div class="dashboard">
+        <aside class="sidebar">
+            <div class="sidebar-card">
+                <h3>{{ user.name }}</h3>
+                <div style="margin-bottom: var(--space-md);">
+                    <span style="display: inline-block; background: linear-gradient(135deg, var(--accent-primary), var(--accent-light)); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">
+                        {{ user.client_level|capitalize }}
+                    </span>
+                </div>
+                <div class="metric-row"><span class="metric-label">Streak</span><span class="metric-value">{{ user.streak_weeks }} недель</span></div>
+                <div class="metric-row"><span class="metric-label">Баллы</span><span class="metric-value">{{ user.loyalty_points }}</span></div>
+                <div class="metric-row"><span class="metric-label">Баланс</span><span class="metric-value" style="color: var(--accent-primary);">{{ "%.0f"|format(user.wallet_balance) }}  руб.</span></div>
+                {% if user.wallet_bonus > 0 %}
+                <div class="metric-row"><span class="metric-label">Бонусы</span><span class="metric-value" style="color: var(--accent-light);">{{ "%.0f"|format(user.wallet_bonus) }}  руб.</span></div>
+                {% endif %}
+                {% if user.achievements %}
+                <div style="margin-top: var(--space-md); display: flex; flex-wrap: wrap; gap: 6px;">
+                    {% for a in user.achievements %}
+                    <span style="background: rgba(45,106,79,0.2); color: var(--accent-primary); padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 600;">{{ a }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <a href="/wallet" class="btn-primary" style="margin-top: var(--space-lg); display: block; text-align: center;">Пополнить кошелек</a>
+                <a href="/market/new" class="btn-secondary" style="margin-top: 8px; display: block; text-align: center;">Разместить лот</a>
+                <a href="/profile" class="btn-ghost" style="margin-top: 8px; display: block; text-align: center;">Профиль</a>
+            </div>
+        </aside>
+
+        <div class="dashboard-main">
+            {% if rec_trainers %}
+            <div class="main-panel" style="margin-bottom: var(--space-xl);">
+                <h2>Рекомендуем</h2>
+                <div class="trainer-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
+                    {% for t in rec_trainers %}
+                    <div class="trainer-card reveal">
+                        <div class="trainer-card-content" style="padding: var(--space-md);">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--space-sm);">
+                                <h4 style="font-size: var(--text-base);">{{ t.name }}</h4>
+                                <span style="background: rgba(45,106,79,0.2); color: var(--accent-primary); padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 700;">{{ "%.0f"|format(t.rec_score*100) }}%</span>
+                            </div>
+                            <p style="color: var(--text-muted); font-size: var(--text-sm); margin-bottom: var(--space-xs);">{{ discipline_name(primary_discipline(t)) }} • {{ t.hourly_rate }}  руб.</p>
+                            <small style="color: var(--text-muted);">{{ t.rec_reason }}</small>
+                            <a href="/trainer/{{ t.id }}" style="display: block; margin-top: var(--space-sm); color: var(--accent-primary); font-size: var(--text-sm); font-weight: 600;">Профиль <svg class="icon icon-sm" style="margin-left:4px;"><use href="#icon-arrow-right"/></svg></a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="main-panel" style="margin-bottom: var(--space-xl);">
+                <h2>Мои бронирования</h2>
+                {% if bookings %}
+                <div class="transactions-list">
+                    {% for b, trainer in bookings %}
+                    <div class="metric-row">
+                        <div>
+                            <div style="font-weight: 600;">{{ trainer.name }} • {{ b.booking_type }}</div>
+                            <small style="color: var(--text-muted);">{{ b.amount }} ₽{% if b.gym_id and gyms_map.get(b.gym_id) %} • <svg class="icon icon-xs"><use href="#icon-map-pin"/></svg> {{ gyms_map[b.gym_id].name }}{% endif %}</small>
+                        </div>
+                        <div style="text-align: right;">
+                            <span class="status-badge status-{{ b.status }}">{{ b.status }}</span>
+                            {% if b.status == 'confirmed' %}
+                            <button onclick="completeBooking({{ b.id }})" class="btn-primary" style="padding: 4px 12px; font-size: 0.75rem; margin-left: var(--space-sm);">Завершить</button>
+                            {% elif b.status == 'completed' %}
+                            <button onclick="showReviewForm({{ b.id }}, '{{ trainer.name }}')" class="btn-secondary" style="padding: 4px 12px; font-size: 0.75rem; margin-left: var(--space-sm);">Оставить отзыв</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="color: var(--text-muted); text-align: center; padding: var(--space-xl);">У вас пока нет бронирований. <a href="/trainers" style="color: var(--accent-primary);">Найти тренера <svg class="icon icon-sm" style="margin-left:4px;"><use href="#icon-arrow-right"/></svg></a></p>
+                {% endif %}
+            </div>
+
+            <div class="main-panel" style="margin-bottom: var(--space-xl);">
+                <h2>Мои покупки (безопасные сделки)</h2>
+                {% if my_purchases %}
+                <div class="transactions-list">
+                    {% for o, p in my_purchases %}
+                    <div class="metric-row">
+                        <div>
+                            <div style="font-weight: 600;"><a href="/market/{{ p.id }}" style="color:inherit;">{{ p.title }}</a></div>
+                            <small style="color: var(--text-muted);">{{ o.amount }} ₽ • заказ №{{ o.id }}</small>
+                        </div>
+                        <div style="text-align: right;">
+                            <span class="status-badge status-{{ 'completed' if o.status == 'completed' else ('confirmed' if o.status == 'escrow' else 'pending') }}">{{ {'escrow': 'эскроу', 'completed': 'завершена', 'refunded': 'возврат'}[o.status] }}</span>
+                            {% if o.status == 'escrow' %}
+                            <button onclick="confirmOrder({{ o.id }})" class="btn-primary" style="padding: 4px 12px; font-size: 0.75rem; margin-left: var(--space-sm);">Получено</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="color: var(--text-muted); text-align: center; padding: var(--space-lg);">Покупок пока нет. <a href="/market" style="color: var(--accent-primary);">Загляните в маркет</a> — там снаряжение от скалолазов.</p>
+                {% endif %}
+            </div>
+
+            {% if my_listings %}
+            <div class="main-panel" style="margin-bottom: var(--space-xl);">
+                <h2>Мои лоты</h2>
+                <div class="transactions-list">
+                    {% for p in my_listings %}
+                    <div class="metric-row">
+                        <div>
+                            <div style="font-weight: 600;"><a href="/market/{{ p.id }}" style="color:inherit;">{{ p.title }}</a></div>
+                            <small style="color: var(--text-muted);">{{ "%.0f"|format(p.price) }} ₽ • {{ p.views or 0 }} просмотров</small>
+                        </div>
+                        <span class="status-badge status-{{ 'completed' if p.status == 'sold' else ('confirmed' if p.status == 'active' else 'pending') }}">{{ 'продан' if p.status == 'sold' else ('активен' if p.status == 'active' else 'архив') }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="main-panel">
+                <h2>История транзакций</h2>
+                <div class="transactions-list">
+                    {% for t in transactions %}
+                    <div class="metric-row">
+                        <div>
+                            <div style="font-weight: 600;">{{ t.description }}</div>
+                            <small style="color: var(--text-muted);">{{ t.type|capitalize }}</small>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: 700; color: {% if t.amount > 0 %}var(--success){% else %}var(--text-primary){% endif %};">
+                                {% if t.amount > 0 %}+{% endif %}{{ "%.0f"|format(t.amount) }}  руб.
+                            </div>
+                            <small style="color: var(--text-muted);">{{ t.created_at.strftime('%d.%m.%Y') if t.created_at else '' }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+<script>
+async function completeBooking(id) {
+    const res = await fetch('/api/bookings/' + id + '/complete', {method: 'POST'});
+    const data = await res.json();
+    if (data.success) { alert('Тренировка завершена! Кэшбэк начислен.'); location.reload(); }
+    else alert('Ошибка');
+}
+async function confirmOrder(id) {
+    if (!confirm('Подтверждаете получение товара? Деньги будут переведены продавцу.')) return;
+    const res = await fetch('/api/market/orders/' + id + '/confirm', {method: 'POST'});
+    const data = await res.json();
+    if (data.success) { alert('Сделка завершена!'); location.reload(); }
+    else alert(data.detail || 'Ошибка');
+}
+</script>
+
+<!-- Review Form Modal -->
+<div id="reviewModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:var(--space-xl); max-width:500px; width:90%;">
+        <h3 id="reviewTitle">Оставить отзыв</h3>
+        <form id="reviewForm" onsubmit="submitReview(event)">
+            <input type="hidden" id="reviewBookingId" name="booking_id">
+            <div style="margin-bottom:var(--space-md);">
+                <label style="display:block; margin-bottom:var(--space-xs); color:var(--text-secondary);">Оценка</label>
+                <div class="star-rating" style="display:flex; gap:8px;">
+                    {% for i in range(1, 6) %}
+                    <label style="cursor:pointer; font-size:1.5rem; color:var(--text-muted); transition:color 0.2s;" onmouseover="hoverStar(this)" onmouseout="resetStars()" onclick="setRating({{ i }})" data-rating="{{ i }}">&#9733;</label>
+                    {% endfor %}
+                </div>
+                <input type="hidden" id="reviewRating" name="rating" value="5">
+            </div>
+            <div style="margin-bottom:var(--space-md);">
+                <label style="display:block; margin-bottom:var(--space-xs); color:var(--text-secondary);">Комментарий</label>
+                <textarea name="comment" rows="4" style="width:100%; background:var(--bg-primary); border:1px solid var(--border); border-radius:var(--radius); padding:var(--space-sm); color:var(--text-primary); resize:vertical;" placeholder="Расскажите о вашем опыте..."></textarea>
+            </div>
+            <div style="display:flex; gap:var(--space-sm); justify-content:flex-end;">
+                <button type="button" onclick="closeReviewModal()" class="btn-secondary">Отмена</button>
+                <button type="submit" class="btn-primary">Отправить</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+let currentRating = 5;
+function showReviewForm(bookingId, trainerName) {
+    document.getElementById('reviewBookingId').value = bookingId;
+    document.getElementById('reviewTitle').textContent = 'Отзыв о тренере: ' + trainerName;
+    document.getElementById('reviewModal').style.display = 'flex';
+}
+function closeReviewModal() {
+    document.getElementById('reviewModal').style.display = 'none';
+}
+function setRating(n) {
+    currentRating = n;
+    document.getElementById('reviewRating').value = n;
+    const stars = document.querySelectorAll('.star-rating label');
+    stars.forEach((s, i) => { s.style.color = i < n ? '#f0c040' : 'var(--text-muted)'; });
+}
+function hoverStar(el) {
+    const n = parseInt(el.dataset.rating);
+    const stars = document.querySelectorAll('.star-rating label');
+    stars.forEach((s, i) => { s.style.color = i < n ? '#f0c040' : 'var(--text-muted)'; });
+}
+function resetStars() {
+    const stars = document.querySelectorAll('.star-rating label');
+    stars.forEach((s, i) => { s.style.color = i < currentRating ? '#f0c040' : 'var(--text-muted)'; });
+}
+async function submitReview(e) {
+    e.preventDefault();
+    const form = new FormData(e.target);
+    const res = await fetch('/api/reviews', {method: 'POST', body: form});
+    const data = await res.json();
+    if (data.success) { alert('Отзыв отправлен! +50 бонусных баллов'); closeReviewModal(); location.reload(); }
+    else alert('Ошибка: ' + (data.detail || 'Не удалось отправить отзыв'));
+}
+</script>
+{% endblock %}

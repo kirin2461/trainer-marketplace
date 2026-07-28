@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}О сервисе — ClimbConnect{% endblock %}
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <span class="section-tag">О сервисе</span>
+        <h1>ClimbConnect</h1>
+        <p>Платформа скалолазов: тренеры, снаряжение, сообщество</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container" style="max-width: 800px;">
+        <div class="profile-section reveal">
+            <h2 class="section-title" style="font-size:1.5rem;">Что это</h2>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                ClimbConnect — маркетплейс для скалолазов. Здесь можно найти тренера по любой дисциплине —
+                боулдеринг, трудность, скорость, верхняя страховка, трад, мультипитч, лёд и драйтулинг,
+                физподготовка и детские занятия — и забронировать занятие онлайн.
+                А во встроенном маркете покупают и продают снаряжение: скальные туфли, обвязки,
+                страховочные устройства, верёвки, крашпады и всё остальное.
+            </p>
+        </div>
+
+        <div class="profile-section reveal">
+            <h2 class="section-title" style="font-size:1.5rem;">
+                <svg class="icon icon-sm" style="color:var(--accent-light);"><use href="#icon-shield-check"/></svg>
+                Безопасная сделка
+            </h2>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                Покупки в маркете проходят через эскроу: деньги покупателя замораживаются на платформе
+                и переводятся продавцу только после подтверждения получения товара.
+                Если что-то пошло не так — сделку можно отменить, и деньги вернутся в полном объёме.
+                Комиссия платформы — 7% с продавца.
+            </p>
+        </div>
+
+        <div class="profile-section reveal">
+            <h2 class="section-title" style="font-size:1.5rem;">Тренерам</h2>
+            <p style="color: var(--text-secondary); line-height: 1.8;">
+                Каждый тренер ведёт свою витрину-анкету: дисциплины, формат работы (зал, скалы, онлайн),
+                уровень учеников, личная категория, достижения и сертификаты. Оплата занятий — через внутренний
+                кошелёк, комиссия снижается по мере заработка: от 20% до 5%.
+            </p>
+            <div style="margin-top: var(--space-md);">
+                <a href="/register" class="btn btn-primary btn-icon">Стать тренером <svg class="icon"><use href="#icon-arrow-right"/></svg></a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
