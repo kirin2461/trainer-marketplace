@@ -7,7 +7,7 @@
             <span class="section-tag">Маркет</span>
             <h1 style="margin-bottom: var(--space-sm);">Разместить лот</h1>
             <p style="color:var(--text-muted);margin-bottom: var(--space-lg);">
-                Продайте снаряжение сообществу скалолазов. Сделки защищены эскроу: деньги придут после подтверждения получения покупателем. Комиссия — 7%.
+                Продайте снаряжение сообществу скалолазов. Сделка прямая: деньги приходят на ваш кошелёк сразу после оплаты. Ваша комиссия сейчас — {{ fee_rate_pct }}%{% if promo_sales_left %} (ещё {{ promo_sales_left }} {{ 'продажа' if promo_sales_left == 1 else 'продажи' }} без комиссии){% endif %}.
             </p>
 
             <div class="booking-form">
