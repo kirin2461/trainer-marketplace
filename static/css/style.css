@@ -3988,3 +3988,106 @@ a.chip:hover { border-color: var(--accent-light); transform: translateY(-1px); }
   .gym-detail-layout { grid-template-columns: 1fr; }
   .gyms-map { height: 340px; }
 }
+
+/* ========================================
+   ADMIN PANEL
+   ======================================== */
+.nav-admin-link { color: var(--accent-light) !important; font-weight: 600; }
+.admin-subnav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: var(--space-md); }
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+.admin-stat {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 16px);
+  padding: 18px;
+  text-align: center;
+}
+.admin-stat-value { font-size: 1.8rem; font-weight: 800; color: var(--accent-light); }
+.admin-stat-label { color: var(--text-muted); font-size: var(--text-sm); margin-top: 4px; }
+.admin-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-sm);
+}
+.admin-menu-card {
+  display: block;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 16px);
+  padding: 22px;
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: border-color .2s ease, transform .2s ease;
+}
+.admin-menu-card:hover { border-color: var(--accent-light); transform: translateY(-2px); }
+.admin-menu-card .icon-lg { color: var(--accent-light); margin-bottom: 10px; }
+.admin-menu-card h3 { margin: 0 0 6px; font-size: 1.05rem; }
+.admin-menu-card p { color: var(--text-muted); font-size: var(--text-sm); margin: 0 0 10px; }
+.admin-form {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 16px);
+  padding: 22px;
+  margin-bottom: var(--space-lg);
+}
+.admin-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 640px) { .admin-form-row { grid-template-columns: 1fr; } }
+.admin-search { display: flex; gap: 10px; margin-bottom: var(--space-md); }
+.admin-search .form-input { flex: 1; }
+.admin-table-wrap {
+  overflow-x: auto;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 16px);
+  padding: 8px 16px;
+}
+.admin-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+.admin-table th {
+  text-align: left; color: var(--text-muted); font-weight: 600;
+  padding: 12px 10px; border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.admin-table td { padding: 12px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.admin-table tr:last-child td { border-bottom: none; }
+.admin-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.admin-actions form { margin: 0; }
+.admin-gyms-layout { display: grid; grid-template-columns: minmax(320px, 420px) 1fr; gap: var(--space-md); align-items: start; }
+@media (max-width: 960px) { .admin-gyms-layout { grid-template-columns: 1fr; } }
+.badge {
+  display: inline-block; padding: 3px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 600; line-height: 1.4;
+}
+.badge-success { background: rgba(82, 183, 136, 0.15); color: #52b788; }
+.badge-warning { background: rgba(244, 162, 97, 0.15); color: #f4a261; }
+.badge-danger  { background: rgba(230, 57, 70, 0.15);  color: #e63946; }
+.btn-danger {
+  background: rgba(230, 57, 70, 0.12);
+  color: #e63946;
+  border: 1px solid rgba(230, 57, 70, 0.35);
+}
+.btn-danger:hover { background: rgba(230, 57, 70, 0.22); }
+.gym-balloon { font-family: inherit; max-width: 240px; }
+.gym-balloon-name { font-weight: 700; margin-bottom: 4px; }
+.gym-balloon-addr { color: #666; font-size: 12px; margin-bottom: 4px; }
+.gym-balloon-disc { color: #2d6a4f; font-size: 12px; margin-bottom: 6px; }
+.gym-balloon-link { color: #2d6a4f; font-weight: 600; text-decoration: none; }
+
+/* Page header (каталог/маркет/поддержка) — отступ под фиксированный navbar */
+.page-header {
+  padding: calc(70px + var(--space-md)) var(--space-lg) var(--space-md);
+  text-align: center;
+}
+.page-header h1 {
+  color: var(--text-heading);
+  margin-bottom: var(--space-sm);
+}
+.page-header p {
+  color: var(--text-muted);
+  max-width: 640px;
+  margin: 0 auto;
+}
