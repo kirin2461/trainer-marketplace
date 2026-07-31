@@ -59,6 +59,9 @@ class User(Base):
     seller_sales = Column(Integer, default=0)
     # --- Admin ---
     is_admin = Column(Boolean, default=False)
+    # --- Paid showcase placement (trainers buy their spot at a fixed price) ---
+    showcase_until = Column(DateTime)  # placement expiry; NULL/past = not listed
+    showcase_autorenew = Column(Boolean, default=False)  # auto-charge wallet on expiry
 
 class Gym(Base):
     """Climbing gym / wall shown on the map and in the catalog."""
@@ -213,6 +216,8 @@ def migrate_db():
         "seller_reviews_total": "INTEGER DEFAULT 0",
         "seller_sales": "INTEGER DEFAULT 0",
         "is_admin": "BOOLEAN DEFAULT 0",
+        "showcase_until": "DATETIME",
+        "showcase_autorenew": "BOOLEAN DEFAULT 0",
     }
     with engine.connect() as conn:
         for col, coltype in new_columns.items():
