@@ -1,5 +1,6 @@
 """Recommendation System for Trainer Marketplace"""
 from sqlalchemy.orm import Session
+from datetime import datetime
 from app.database import User, Booking, Review
 from collections import defaultdict
 
@@ -26,7 +27,8 @@ class RecommendationEngine:
 
         trainers = self.db.query(User).filter(
             User.id.in_(list(final_scores.keys())),
-            User.role == "trainer", User.status == "active"
+            User.role == "trainer", User.status == "active",
+            User.showcase_until > datetime.utcnow()
         ).all()
 
         for t in trainers:
@@ -38,7 +40,10 @@ class RecommendationEngine:
 
     def _content_based_scores(self, user):
         scores = defaultdict(float)
-        trainers = self.db.query(User).filter(User.role == "trainer", User.status == "active").all()
+        trainers = self.db.query(User).filter(
+            User.role == "trainer", User.status == "active",
+            User.showcase_until > datetime.utcnow()
+        ).all()
         for trainer in trainers:
             score = 0.0
             trainer_discs = [d.lower() for d in (trainer.disciplines or [])]
@@ -94,7 +99,10 @@ class RecommendationEngine:
 
     def _trending_scores(self):
         scores = defaultdict(float)
-        trainers = self.db.query(User).filter(User.role == "trainer", User.status == "active").all()
+        trainers = self.db.query(User).filter(
+            User.role == "trainer", User.status == "active",
+            User.showcase_until > datetime.utcnow()
+        ).all()
         for t in trainers:
             if t.total_bookings > 0:
                 scores[t.id] = min(t.total_bookings / 50.0, 0.5)
@@ -103,7 +111,8 @@ class RecommendationEngine:
 
     def _get_trending_trainers(self, limit):
         trainers = self.db.query(User).filter(
-            User.role == "trainer", User.status == "active"
+            User.role == "trainer", User.status == "active",
+            User.showcase_until > datetime.utcnow()
         ).order_by(User.rating.desc(), User.total_bookings.desc()).limit(limit).all()
         for t in trainers:
             t.rec_score = round((t.rating / 5.0) * 0.7 + min(t.total_bookings / 100, 0.3), 2)
