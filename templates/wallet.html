@@ -35,7 +35,7 @@
             <div class="metric-row">
                 <div>
                     <div style="font-weight: 600; color: var(--text-primary);">{{ t.description }}</div>
-                    <small style="color: var(--text-muted);">{{ t.type|capitalize }} • {{ t.created_at.strftime('%d.%m.%Y') if t.created_at else '' }}</small>
+                    <small style="color: var(--text-muted);">{{ t.type|capitalize }} • {{ t.created_at.strftime('%d.%m.%Y') if t.created_at else '' }}{% if t.status == 'pending' %} • <span style="color: var(--accent-light);">ожидает оплаты</span>{% endif %}</small>
                 </div>
                 <div style="text-align: right;">
                     <div style="font-weight: 700; color: {% if t.amount > 0 %}var(--success){% else %}var(--text-primary){% endif %};">
@@ -53,8 +53,9 @@ async function deposit(amount) {
     form.append('amount', amount);
     const res = await fetch('/api/wallet/deposit', {method: 'POST', body: form});
     const data = await res.json();
+    if (data.payment_url) { window.location.href = data.payment_url; return; }
     if (data.success) { alert('Кошелек пополнен на ' + amount + '  руб.'); location.reload(); }
-    else alert('Ошибка');
+    else alert(data.detail || 'Ошибка');
 }
 </script>
 {% endblock %}
