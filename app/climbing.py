@@ -86,7 +86,25 @@ CONDITIONS = {
 # ============================================================
 # MARKETPLACE SETTINGS
 # ============================================================
-MARKET_FEE_RATE = 0.07  # 7% platform fee on released escrow
+# Progressive marketplace commission: the more sales a seller has, the lower the fee.
+MARKET_PROMO_FREE_SALES = 3  # every seller's first N sales are commission-free
+MARKET_FEE_TIERS = [  # (min completed sales, fee rate) — checked from the top
+    (100, 0.04),
+    (30, 0.05),
+    (10, 0.06),
+    (0, 0.08),
+]
+
+
+def market_fee_rate(sales_count: int) -> float:
+    """Commission rate for the seller's NEXT sale given their completed sales so far.
+    The first MARKET_PROMO_FREE_SALES sales are free; then a progressive tier applies."""
+    if sales_count < MARKET_PROMO_FREE_SALES:
+        return 0.0
+    for threshold, rate in MARKET_FEE_TIERS:
+        if sales_count >= threshold:
+            return rate
+    return MARKET_FEE_TIERS[-1][1]
 
 # Popular cities for filters / seeds
 CITIES = ["Москва", "Санкт-Петербург", "Екатеринбург", "Красноярск", "Новосибирск", "Сочи", "Казань"]
