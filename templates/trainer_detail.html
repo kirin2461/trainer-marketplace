@@ -5,7 +5,7 @@
 {% block content %}
 {% set pd = primary_discipline(trainer) %}
 
-<section class="section" style="padding-top: 32px;">
+<section class="section">
   <div class="container">
 
     <!-- Photo Banner -->
@@ -47,16 +47,25 @@
       <!-- Right: Price + Actions -->
       <div class="profile-right">
         <div class="profile-price">{{ trainer.hourly_rate }} <span>руб./ч</span></div>
-        <p class="profile-commission">Комиссия платформы: {{ "%.0f"|format(trainer.sliding_commission_rate * 100) }}%</p>
+        <p class="profile-commission">Бронирование без комиссии платформы</p>
         <div class="profile-actions">
+          {% if placement_active %}
           <a href="/book/{{ trainer.id }}" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;">
             Забронировать
             <svg class="icon"><use href="#icon-arrow-right"/></svg>
           </a>
+          {% else %}
+          <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center;opacity:.5;cursor:not-allowed;" disabled>
+            Временно не принимает бронирования
+          </button>
+          {% endif %}
           <a href="/chat/{{ trainer.id }}" class="btn btn-secondary btn-lg" style="width:100%;justify-content:center;margin-top:8px;">
             <svg class="icon"><use href="#icon-message-circle"/></svg>
             Написать
           </a>
+          <p style="color:var(--text-muted);font-size:var(--text-xs);margin-top:10px;line-height:1.5;">
+            Тренер — независимый исполнитель и сам предлагает свои услуги на витрине ClimbConnect.
+          </p>
         </div>
       </div>
     </div>
