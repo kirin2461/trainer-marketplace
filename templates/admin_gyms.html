@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Скалодромы — Админ-панель{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="section-header" style="text-align:left;margin-bottom: var(--space-md);">
+      <span class="section-label">Админ-панель</span>
+      <h1 class="section-title" style="font-size:2rem;">Скалодромы</h1>
+    </div>
+
+    <div class="admin-subnav reveal">
+      <a href="/admin" class="chip {% if active == 'dashboard' %}chip-active{% endif %}">Панель</a>
+      <a href="/admin/settings" class="chip {% if active == 'settings' %}chip-active{% endif %}">Настройки</a>
+      <a href="/admin/users" class="chip {% if active == 'users' %}chip-active{% endif %}">Пользователи</a>
+      <a href="/admin/gyms" class="chip {% if active == 'gyms' %}chip-active{% endif %}">Скалодромы</a>
+    </div>
+
+    <div class="admin-gyms-layout">
+      <form method="post" action="/admin/gyms/save" class="admin-form">
+        <h3 style="margin-bottom: var(--space-sm);">{{ 'Редактировать зал' if edit_gym else 'Добавить зал' }}</h3>
+        <input type="hidden" name="gym_id" value="{{ edit_gym.id if edit_gym else 0 }}">
+        <div class="form-group">
+          <label class="form-label">Название *</label>
+          <input class="form-input" type="text" name="name" required value="{{ edit_gym.name if edit_gym else '' }}">
+          <small style="color: var(--text-muted);">Тренеры привязываются к залу по точному названию в их профиле.</small>
+        </div>
+        <div class="admin-form-row">
+          <div class="form-group">
+            <label class="form-label">Город *</label>
+            <input class="form-input" type="text" name="city" required value="{{ edit_gym.city if edit_gym else '' }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Метро</label>
+            <input class="form-input" type="text" name="metro" value="{{ edit_gym.metro if edit_gym else '' }}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Адрес</label>
+          <input class="form-input" type="text" name="address" value="{{ edit_gym.address if edit_gym else '' }}">
+        </div>
+        <div class="admin-form-row">
+          <div class="form-group">
+            <label class="form-label">Широта (lat)</label>
+            <input class="form-input" type="number" step="any" name="lat" value="{{ edit_gym.lat if edit_gym else '' }}" placeholder="55.75">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Долгота (lng)</label>
+            <input class="form-input" type="number" step="any" name="lng" value="{{ edit_gym.lng if edit_gym else '' }}" placeholder="37.61">
+          </div>
+        </div>
+        <div class="admin-form-row">
+          <div class="form-group">
+            <label class="form-label">Высота стен</label>
+            <input class="form-input" type="text" name="wall_height" value="{{ edit_gym.wall_height if edit_gym else '' }}" placeholder="15 м">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Цена от, ₽</label>
+            <input class="form-input" type="number" name="price_from" value="{{ edit_gym.price_from if edit_gym else '' }}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Сайт</label>
+          <input class="form-input" type="url" name="website" value="{{ edit_gym.website if edit_gym else '' }}" placeholder="https://…">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Дисциплины</label>
+          <div class="chips">
+            {% for key in discipline_keys %}
+            <label class="chip chip-link">
+              <input type="checkbox" name="disciplines" value="{{ key }}"
+                     {% if edit_gym and key in (edit_gym.disciplines or []) %}checked{% endif %}
+                     style="accent-color: var(--accent);">
+              {{ DISCIPLINES[key].name if key in DISCIPLINES else key }}
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Описание</label>
+          <textarea class="form-input" name="description" rows="3">{{ edit_gym.description if edit_gym else '' }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">{{ 'Сохранить' if edit_gym else 'Добавить' }}</button>
+        {% if edit_gym %}<a href="/admin/gyms" class="btn btn-ghost">Отмена</a>{% endif %}
+      </form>
+
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Зал</th><th>Город</th><th>Координаты</th><th></th></tr></thead>
+          <tbody>
+            {% for g in gyms %}
+            <tr>
+              <td><div style="font-weight:600;">{{ g.name }}</div><small style="color: var(--text-muted);">{{ g.address }}</small></td>
+              <td>{{ g.city }}</td>
+              <td><small>{{ '%.4f'|format(g.lat or 0) }}, {{ '%.4f'|format(g.lng or 0) }}</small></td>
+              <td class="admin-actions">
+                <a class="btn btn-ghost btn-sm" href="/admin/gyms?edit={{ g.id }}">Править</a>
+                <form method="post" action="/admin/gyms/{{ g.id }}/delete" onsubmit="return confirm('Удалить зал «{{ g.name }}»?');">
+                  <button class="btn btn-danger btn-sm" type="submit">Удалить</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
