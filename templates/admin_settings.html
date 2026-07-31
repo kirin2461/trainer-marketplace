@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Настройки — Админ-панель{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="container" style="max-width: 720px;">
+    <div class="section-header" style="text-align:left;margin-bottom: var(--space-md);">
+      <span class="section-label">Админ-панель</span>
+      <h1 class="section-title" style="font-size:2rem;">Настройки и платежи</h1>
+    </div>
+
+    <div class="admin-subnav reveal">
+      <a href="/admin" class="chip {% if active == 'dashboard' %}chip-active{% endif %}">Панель</a>
+      <a href="/admin/settings" class="chip {% if active == 'settings' %}chip-active{% endif %}">Настройки</a>
+      <a href="/admin/users" class="chip {% if active == 'users' %}chip-active{% endif %}">Пользователи</a>
+      <a href="/admin/gyms" class="chip {% if active == 'gyms' %}chip-active{% endif %}">Скалодромы</a>
+    </div>
+
+    {% if saved %}
+    <div class="alert alert-success" style="margin-bottom: var(--space-md);">Настройки сохранены</div>
+    {% endif %}
+
+    <form method="post" action="/admin/settings" class="admin-form">
+      <h3 style="margin-bottom: var(--space-sm);">
+        <svg class="icon icon-sm"><use href="#icon-wallet"/></svg> ЮKassa
+      </h3>
+      <p style="color: var(--text-muted); font-size: var(--text-sm); margin-bottom: var(--space-md);">
+        Данные из личного кабинета ЮKassa (Магазин → Настройки → Ключи API).
+        {% if yookassa_secret_set %}Секретный ключ сохранён: <code>{{ yookassa_secret_masked }}</code>{% else %}Секретный ключ пока не задан — пополнение кошелька работает в демо-режиме.{% endif %}
+      </p>
+      <div class="form-group">
+        <label class="form-label" for="yookassa_shop_id">Shop ID</label>
+        <input class="form-input" type="text" id="yookassa_shop_id" name="yookassa_shop_id"
+               value="{{ yookassa_shop_id }}" placeholder="Например: 123456" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="yookassa_secret_key">Секретный ключ</label>
+        <input class="form-input" type="password" id="yookassa_secret_key" name="yookassa_secret_key"
+               value="" placeholder="{% if yookassa_secret_set %}Оставьте пустым, чтобы не менять{% else %}live_... или test_...{% endif %}" autocomplete="new-password">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Webhook для уведомлений</label>
+        <input class="form-input" type="text" readonly
+               value="{{ request.base_url }}api/payments/yookassa/webhook"
+               onclick="this.select()">
+        <small style="color: var(--text-muted);">Укажите этот URL в кабинете ЮKassa (Настройки → HTTP-уведомления), событие payment.succeeded.</small>
+      </div>
+
+      <h3 style="margin: var(--space-lg) 0 var(--space-sm);">
+        <svg class="icon icon-sm"><use href="#icon-star"/></svg> Витрина тренеров
+      </h3>
+      <div class="form-group">
+        <label class="form-label" for="showcase_price">Цена размещения на витрине, ₽ за 30 дней</label>
+        <input class="form-input" type="number" min="0" step="1" id="showcase_price" name="showcase_price"
+               value="{{ showcase_price }}" placeholder="990" autocomplete="off">
+        <small style="color: var(--text-muted);">Комиссии с занятий нет — тренеры платят только за размещение. 0 = размещение бесплатно.</small>
+      </div>
+
+      <h3 style="margin: var(--space-lg) 0 var(--space-sm);">
+        <svg class="icon icon-sm"><use href="#icon-map-pin"/></svg> Яндекс.Карты
+      </h3>
+      <div class="form-group">
+        <label class="form-label" for="yandex_maps_api_key">API-ключ JavaScript API и Геокодера</label>
+        <input class="form-input" type="text" id="yandex_maps_api_key" name="yandex_maps_api_key"
+               value="{{ yandex_maps_api_key }}" placeholder="Необязательно — без ключа карта работает в ограниченном режиме" autocomplete="off">
+      </div>
+
+      <button type="submit" class="btn btn-primary">Сохранить настройки</button>
+    </form>
+
+    {% if yookassa_secret_set %}
+    <form method="post" action="/admin/settings/yookassa/clear" style="margin-top: var(--space-md);"
+          onsubmit="return confirm('Отключить ЮKassa? Пополнение кошелька вернётся в демо-режим.');">
+      <button type="submit" class="btn btn-danger btn-sm">Отключить ЮKassa</button>
+    </form>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
