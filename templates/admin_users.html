@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Пользователи — Админ-панель{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="section-header" style="text-align:left;margin-bottom: var(--space-md);">
+      <span class="section-label">Админ-панель</span>
+      <h1 class="section-title" style="font-size:2rem;">Пользователи</h1>
+    </div>
+
+    <div class="admin-subnav reveal">
+      <a href="/admin" class="chip {% if active == 'dashboard' %}chip-active{% endif %}">Панель</a>
+      <a href="/admin/settings" class="chip {% if active == 'settings' %}chip-active{% endif %}">Настройки</a>
+      <a href="/admin/users" class="chip {% if active == 'users' %}chip-active{% endif %}">Пользователи</a>
+      <a href="/admin/gyms" class="chip {% if active == 'gyms' %}chip-active{% endif %}">Скалодромы</a>
+    </div>
+
+    <form method="get" action="/admin/users" class="admin-search">
+      <input class="form-input" type="text" name="q" value="{{ q }}" placeholder="Поиск по имени или email…">
+      <button type="submit" class="btn btn-secondary btn-sm">Найти</button>
+    </form>
+
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr><th>Пользователь</th><th>Роль</th><th>Статус</th><th>Баланс</th><th>Действия</th></tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td>
+              <div style="font-weight:600;">{{ u.name }}
+                {% if u.is_admin %}<span class="badge badge-success">админ</span>{% endif %}
+              </div>
+              <small style="color: var(--text-muted);">{{ u.email }}</small>
+            </td>
+            <td>{{ 'Тренер' if u.role == 'trainer' else 'Клиент' }}</td>
+            <td>
+              {% if u.status == 'active' %}<span class="badge badge-success">активен</span>
+              {% else %}<span class="badge badge-danger">заблокирован</span>{% endif %}
+            </td>
+            <td>{{ "%.0f"|format(u.wallet_balance or 0) }} ₽</td>
+            <td class="admin-actions">
+              {% if u.id != user.id %}
+              <form method="post" action="/admin/users/{{ u.id }}/toggle-admin">
+                <button class="btn btn-ghost btn-sm" type="submit">{{ 'Снять админа' if u.is_admin else 'Сделать админом' }}</button>
+              </form>
+              <form method="post" action="/admin/users/{{ u.id }}/toggle-status">
+                <button class="btn btn-sm {{ 'btn-danger' if u.status == 'active' else 'btn-secondary' }}" type="submit">
+                  {{ 'Заблокировать' if u.status == 'active' else 'Разблокировать' }}
+                </button>
+              </form>
+              {% else %}
+              <small style="color: var(--text-muted);">это вы</small>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Админ-панель — ClimbConnect{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="section-header" style="text-align:left;margin-bottom: var(--space-md);">
+      <span class="section-label">Управление</span>
+      <h1 class="section-title" style="font-size:2rem;">Админ-панель</h1>
+    </div>
+
+    <div class="admin-subnav reveal">
+      <a href="/admin" class="chip {% if active == 'dashboard' %}chip-active{% endif %}">Панель</a>
+      <a href="/admin/settings" class="chip {% if active == 'settings' %}chip-active{% endif %}">Настройки</a>
+      <a href="/admin/users" class="chip {% if active == 'users' %}chip-active{% endif %}">Пользователи</a>
+      <a href="/admin/gyms" class="chip {% if active == 'gyms' %}chip-active{% endif %}">Скалодромы</a>
+    </div>
+
+    <div class="admin-stats-grid">
+      <div class="admin-stat"><div class="admin-stat-value">{{ stats.users }}</div><div class="admin-stat-label">Пользователей</div></div>
+      <div class="admin-stat"><div class="admin-stat-value">{{ stats.trainers }}</div><div class="admin-stat-label">Тренеров</div></div>
+      <div class="admin-stat"><div class="admin-stat-value">{{ stats.clients }}</div><div class="admin-stat-label">Клиентов</div></div>
+      <div class="admin-stat"><div class="admin-stat-value">{{ stats.gyms }}</div><div class="admin-stat-label">Скалодромов</div></div>
+      <div class="admin-stat"><div class="admin-stat-value">{{ stats.bookings }}</div><div class="admin-stat-label">Бронирований</div></div>
+      <div class="admin-stat"><div class="admin-stat-value">{{ stats.products }}</div><div class="admin-stat-label">Лотов в маркете</div></div>
+    </div>
+
+    <div class="admin-menu-grid">
+      <a href="/admin/settings" class="admin-menu-card">
+        <svg class="icon icon-lg"><use href="#icon-wallet"/></svg>
+        <h3>Настройки и платежи</h3>
+        <p>API-ключи ЮKassa, ключ Яндекс.Карт</p>
+        {% if yookassa_configured %}
+        <span class="badge badge-success">ЮKassa подключена</span>
+        {% else %}
+        <span class="badge badge-warning">ЮKassa не настроена — демо-режим пополнения</span>
+        {% endif %}
+      </a>
+      <a href="/admin/users" class="admin-menu-card">
+        <svg class="icon icon-lg"><use href="#icon-user"/></svg>
+        <h3>Пользователи</h3>
+        <p>Роли, права администратора, блокировки</p>
+      </a>
+      <a href="/admin/gyms" class="admin-menu-card">
+        <svg class="icon icon-lg"><use href="#icon-mountain"/></svg>
+        <h3>Скалодромы</h3>
+        <p>Каталог залов, координаты для карты</p>
+      </a>
+      <a href="/gyms" class="admin-menu-card">
+        <svg class="icon icon-lg"><use href="#icon-map-pin"/></svg>
+        <h3>Карта залов</h3>
+        <p>Как каталог видят пользователи</p>
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}
